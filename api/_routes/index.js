@@ -1,0 +1,21 @@
+// Registers every API route. Each module wires itself into the router on require.
+require('./auth.routes');
+require('./users.routes');
+require('./wallet.routes');
+require('./categories.routes');
+require('./matches.routes');
+require('./deposits.routes');
+require('./withdrawals.routes');
+require('./referrals.routes');
+require('./promos.routes');
+require('./notifications.routes');
+require('./banners.routes');
+require('./reports.routes');
+require('./analytics.routes');
+require('./admins.routes');
+require('./audit.routes');
+require('./security.routes');
+require('./settings.routes');
+require('./devices.routes');
+require('./sms.routes');
+require('./user.routes');

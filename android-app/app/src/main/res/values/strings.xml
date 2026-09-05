@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">WINNING BD Admin</string>
+    <string name="settings_title">Device &amp; SMS Settings</string>
+    <string name="channel_sms">SMS verification service</string>
+    <string name="service_notif_title">SMS verification running</string>
+    <string name="service_notif_text">Monitoring payment SMS and syncing transactions</string>
+    <string name="test_connection">Test connection</string>
+    <string name="sync_now">Sync now</string>
+    <string name="register_via_panel">Register via Admin Panel → SMS Payment Checker → Register device, then paste Device ID + Token below.</string>
+    <string name="no_activity">— no activity —</string>
+</resources>

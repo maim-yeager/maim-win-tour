@@ -1,0 +1,12 @@
+# Node deps + local artifacts
+node_modules
+.vercel
+
+# Secrets — NEVER commit or upload
+.env
+.env.*
+*.pem
+**/service-account*.json
+**/service-account*.b64
+**/*-firebase-adminsdk-*.json
+winningbd-secrets

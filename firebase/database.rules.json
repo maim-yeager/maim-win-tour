@@ -1,0 +1,65 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "categories": { ".read": true, ".write": false },
+
+    "matches": { ".read": true, ".write": false },
+
+    "notifications": { ".read": true, ".write": false },
+
+    "app_settings": {
+      ".read": true,
+      ".write": false,
+      "banners": { ".read": true, ".write": false },
+      "update_info": { ".read": true, ".write": false },
+      "sms_config": { ".read": false, ".write": false }
+    },
+
+    "match_participants": {
+      "$matchId": {
+        ".read": "auth != null",
+        ".write": false,
+        "$participantId": {
+          ".validate": "newData.hasChildren(['joinedBy','joinedAt']) && newData.child('joinedBy').val() === $participantId"
+        }
+      }
+    },
+
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.child('deposit').val() === 0 && newData.child('winning').val() === 0 || (data.exists() && newData.child('deposit').val() === data.child('deposit').val() && newData.child('winning').val() === data.child('winning').val())"
+      }
+    },
+
+    "transactions": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+
+    "wallet_ledger": { ".read": false, ".write": false },
+    "deposits": { ".read": false, ".write": false },
+    "withdrawals": { ".read": false, ".write": false },
+    "referrals": { ".read": false, ".write": false },
+    "promo_codes": { ".read": false, ".write": false },
+    "promo_usage": { ".read": false, ".write": false },
+
+    "admin_accounts": { ".read": false, ".write": false },
+    "admin_sessions": { ".read": false, ".write": false },
+    "admin_recovery_codes": { ".read": false, ".write": false },
+    "admin_devices": { ".read": false, ".write": false },
+    "audit_logs": { ".read": false, ".write": false },
+    "sms_transactions": { ".read": false, ".write": false },
+    "sms_trx_index": { ".read": false, ".write": false },
+    "deposit_txids": { ".read": false, ".write": false },
+    "system": { ".read": false, ".write": false },
+
+    "banners": { ".read": false, ".write": false },
+    "admin_banners": { ".read": false, ".write": false }
+  }
+}

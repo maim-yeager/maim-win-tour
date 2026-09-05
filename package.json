@@ -1,0 +1,16 @@
+{
+  "name": "winning-bd",
+  "version": "3.0.0",
+  "private": true,
+  "description": "WINNING BD — User App, Admin Panel, Secure Vercel Backend",
+  "main": "api/index.js",
+  "scripts": {
+    "bootstrap:owner": "node scripts/bootstrap-owner.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^11.11.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
