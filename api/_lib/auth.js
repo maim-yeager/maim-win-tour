@@ -20,12 +20,22 @@ function makePasswordRecord(password) {
 }
 
 function verifyPassword(password, record) {
-    if (!record || !record.salt || !record.hash) return false;
-    const candidate = hashPassword(password, record.salt);
-    const a = Buffer.from(candidate, 'hex');
-    const b = Buffer.from(record.hash, 'hex');
-    if (a.length !== b.length) return false;
-    return crypto.timingSafeEqual(a, b);
+    // Supports both bootstrap format ("passwordHash") and any legacy
+    // internal record format ("hash"). Both are PBKDF2-SHA512, 120000 iters.
+    if (!record) return false;
+    const stored = record.passwordHash || record.hash;
+    if (!stored || !record.salt) return false;
+    // Invalid/non-string inputs must never throw — always degrade to false.
+    if (typeof password !== 'string' || typeof stored !== 'string' || typeof record.salt !== 'string') return false;
+    let candidate, expected;
+    try {
+        candidate = Buffer.from(hashPassword(password, record.salt), 'hex');
+        expected = Buffer.from(stored, 'hex');
+    } catch (e) {
+        return false;
+    }
+    if (candidate.length !== expected.length || expected.length === 0) return false;
+    return crypto.timingSafeEqual(candidate, expected);
 }
 
 // ============ Session tokens ============
@@ -37,14 +47,21 @@ function generateSessionToken() {
     return crypto.randomBytes(32).toString('hex');
 }
 
-const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
+// Session TTL: ADMIN_SESSION_TTL env (ms) overrides; default 24 hours.
+const SESSION_TTL_MS = (() => {
+    const v = parseInt(process.env.ADMIN_SESSION_TTL, 10);
+    return Number.isFinite(v) && v > 0 ? v : 1000 * 60 * 60 * 24;
+})();
 
-async function createSession(adminId, deviceInfo) {
+async function createSession(adminId, metadata) {
     const token = generateSessionToken();
     const tokenHash = hashToken(token);
+    const meta = (metadata && typeof metadata === 'object') ? metadata : {};
     await db().ref('admin_sessions/' + tokenHash).set({
         adminId,
-        device: deviceInfo || {},
+        ip: typeof meta.ip === 'string' ? meta.ip.slice(0, 64) : null,
+        ua: typeof meta.ua === 'string' ? meta.ua.slice(0, 300) : null,
+        device: meta,
         createdAt: Date.now(),
         expiresAt: Date.now() + SESSION_TTL_MS
     });

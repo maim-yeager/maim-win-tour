@@ -10,3 +10,4 @@ node_modules
 **/service-account*.b64
 **/*-firebase-adminsdk-*.json
 winningbd-secrets
+.env*

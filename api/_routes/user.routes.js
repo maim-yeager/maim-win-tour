@@ -202,7 +202,7 @@ route('GET', '/user/withdrawals', async (req, res) => {
 
 // ---------- MATCH JOIN ----------
 // Server-authoritative: capacity, wallet, duplicate join, entry deduction.
-async function slotsFor(type) {
+function slotsFor(type) {
     const t = (type || '').toLowerCase();
     if (t.includes('squad')) return 4;
     if (t.includes('duo')) return 2;

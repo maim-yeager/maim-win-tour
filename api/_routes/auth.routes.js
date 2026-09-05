@@ -23,7 +23,12 @@ route('POST', '/admin/auth/login', async (req, res) => {
             const snap = await db().ref('admin_accounts').orderByChild('email').equalTo(credential).limitToFirst(1).once('value');
             snap.forEach(child => { const v = child.val(); v.id = child.key; if (v.email === credential) admin = v; });
         } else {
-            admin = await db().ref('admin_accounts/' + credential).once('value').then(s => s.val() ? { ...s.val(), id: credential } : null);
+            // Bootstrap stores admin keys upper-cased (e.g. OWNER1); legacy records
+            // may be lower-cased. Try exact, upper, then lower so every format logs in.
+            const rawCred = asString(b.credential);
+            const upper = rawCred.toUpperCase();
+            const lower = rawCred.toLowerCase();
+            admin = await lookupAdminId(rawCred) || await lookupAdminId(upper) || await lookupAdminId(lower);
         }
         if (!admin) throw fail(401, 'INVALID_CREDENTIALS', 'Invalid credentials.');
         if (!verifyPassword(password, admin)) {
@@ -85,4 +90,16 @@ function sanitize(admin) {
         permissions: admin.permissions || {},
         createdAt: admin.createdAt || null
     };
+}
+
+async function lookupAdminId(adminId) {
+    if (!adminId) return null;
+    const snap = await db().ref('admin_accounts/' + adminId).once('value');
+    if (snap.exists()) {
+        const v = snap.val();
+        // Normalize the stored id to the DB key so admin.id reflects reality.
+        v.id = adminId;
+        return v;
+    }
+    return null;
 }
