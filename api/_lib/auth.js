@@ -147,10 +147,14 @@ function generateRecoveryCode() {
     return code;
 }
 
-async function issueRecoveryCode(adminId) {
+// opts.keepTokenHash: preserve that session (the admin requesting the code).
+// All other sessions of this admin are revoked so a compromised login cannot
+// silently mint a recovery code and keep using the account.
+async function issueRecoveryCode(adminId, opts = {}) {
+    const keep = opts.keepTokenHash || null;
     await db().ref('admin_sessions').orderByChild('adminId').equalTo(adminId).once('value').then(snap => {
         const updates = {};
-        snap.forEach(child => { updates[child.key] = null; });
+        snap.forEach(child => { if (child.key !== keep) updates[child.key] = null; });
         if (Object.keys(updates).length) return db().ref('admin_sessions').update(updates);
         return null;
     });

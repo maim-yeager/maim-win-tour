@@ -35,17 +35,17 @@
      (user app-এর signup/login এর জন্য; admin login কোডে আছে)
 
   c) Build → Realtime Database → Create database → Start in production mode
-     ‍ডেটাবেস URL লিখে রাখুন (console-এ যা দেখাবে), যেমন:
+     ডেটাবেস URL লিখে রাখুন (console-এ যা দেখাবে), যেমন:
         https://winningbdupdate-default-rtdb.firebaseio.com
      ⚠️ যদি console-এর URL ভিন্ন হয়, তাহলে index.html এর firebaseConfig databaseURL +
      নিচে ৩-এ দেওয়া FIREBASE_DB_URL মিলিয়ে নিন।
 
   d) Rules পাবলিশ (CLI ছাড়াই):
-       Build → Realtime Database → Rules ট্যাব
-       → এরপর firebase/database.rules.json ফাইলের পুরোটা খুলে কপি করুন
-         (এই ডিভাইসের File Manager বা এডিটর দিয়ে)
-       → console-এর এডিটরে পুরো কনটেন্ট পেস্ট করুন → Publish ✅
-       (নিজে firebase.json দরকার নেই — console সরাসরি rules নেয়)
+        Build → Realtime Database → Rules ট্যাব
+        → এরপর firebase/database.rules.json ফাইলের পুরোটা খুলে কপি করুন
+          (এই ডিভাইসের File Manager বা এডিটর দিয়ে)
+        → console-এর এডিটরে পুরো কনটেন্ট পেস্ট করুন → Publish ✅
+        (নিজে firebase.json দরকার নেই — console সরাসরি rules নেয়)
 
 ================================================================================
 ২. Service Account — রেডি সেট (আর কিছু করতে হবে না)
@@ -72,7 +72,7 @@
         vercel --prod          # সব deploy হয়ে যাবে
 
   ৩.২ (বিকল্প) একান্তই CLI না চাইলে — GitHub + Vercel import:
-        - GitHub অ্যাপে একটি جدید repo বানিয়ে files আপলোড করুন
+        - GitHub অ্যাপে একটি নতুন repo বানিয়ে files আপলোড করুন
           (node_modules ‌bad — পুরো folder নয়, শুধু এই ফোল্ডারের ফাইলগুলো)
         - এদিকে Vercel → Add New Project → Import Git Repo
         - Settings → Environment Variables-এ দুইটি যোগ করুন
@@ -114,18 +114,19 @@
 ৬. SMS Payment Checker (ঐচ্ছিক)
 ================================================================================
   a) (ঐচ্ছিক) sms_config — এটির panel UI নেই, Firebase console দিয়েই লাগাতে হয়:
-       Build → Realtime Database → + (নতুন node):
-       app_settings  →  sms_config  →
-         { "enabled": true,
-           "providers": {
-             "bkash": { "senders": ["BKash","16247"], "keywords": [],
-                        "trxPattern": "(TRX[\\s]*ID[\\s:]*)([A-Z0-9]{10})",
-                        "amountPattern": "(\\d{1,10}(?:\\.\\d{1,2})?)\\s*(?:BDT|Tk)",
-                        "minAmount": 1, "maxAmount": 1000000 },
-             "nagad":  { "senders": ["Nagad"], "minAmount": 1, "maxAmount": 1000000 },
-             "rocket": { "senders": ["Rocket"], "minAmount": 1, "maxAmount": 1000000 },
-             "bank":   { "senders": [], "keywords": ["transfer"], "minAmount": 1, "maxAmount": 1000000 },
-             "other":  { "senders": [], "keywords": [], "minAmount": 1, "maxAmount": 1000000 } } }
+        Build → Realtime Database → + (নতুন node):
+        app_settings  →  sms_config  →
+          { "enabled": true,
+            "providers": {
+              "bkash": { "senders": ["BKash","16247"], "keywords": [],
+                         "trxPattern": "(TRX[\\s]*ID[\\s:]*)([A-Z0-9]{10})",
+                         "amountPattern": "(\\d{1,10}(?:\\.\\d{1,2})?)\\s*(?:BDT|Tk)",
+                         "minAmount": 1, "maxAmount": 1000000 },
+              "nagad":  { "senders": ["Nagad"], "minAmount": 1, "maxAmount": 1000000 },
+              "rocket": { "senders": ["Rocket"], "minAmount": 1, "maxAmount": 1000000 },
+              "bank":   { "senders": [], "keywords": ["transfer"], "minAmount": 1, "maxAmount": 1000000 },
+              "other":  { "senders": [], "keywords": [], "minAmount": 1, "maxAmount": 1000000 } } }
+
   b) APK বিল্ডে ডেস্কটপ লাগে (Android Studio)। ফোনে না দিলে—Admin Panel-এর
      SMS Checker ট্যাবের ডেটা watch করতে পারেন, auto-verification বন্ধ রাখুন।
      (চাইলে GitHub Actions দিয়ে online APK build বানিয়ে দিতে পারি — বললেই
@@ -148,10 +149,13 @@
   Q: /admin/auth/login 500
   A: Vercel env FIREBASE_SERVICE_ACCOUNT_B64 + FIREBASE_DB_URL আছে? env add-এ
      base64-র মাঝে line-break/স্পেস ঢুকেনি তো? (echo -n দিয়ে যুক্ত হয়)
+
   Q: User App login হয় না
   A: Firebase Authentication এ Email/Password enabled? (ধাপ ১-b)
+
   Q: Rules পেস্ট করা হয়নি
   A: Realtime Database → Rules → পুরো JSON → Publish
+
   Q: APK "Connection failed"
   A: ServerUrl = https://winning-tour-web.vercel.app (শেষে / নেই), Device ID+Token সঠিক,
      devices status CONNECTED
@@ -159,4 +163,105 @@
 ================================================================================
   প্রোডাকশন টিপস: Password recovery → Admin → Security Center → code (১০ মিনিট)
   সমস্ত টাকার হিসাব wallet_ledger (append-only) এ — audit/রিপোর্টের ভিত্তি
+================================================================================
+
+================================================================================
+  ARCHITECTURE OVERVIEW (ডেভেলপারদের জন্য)
+================================================================================
+
+  USER APP (index.html)
+  ├─ Firebase Auth (Email/Password)
+  ├─ Firebase RTDB Listeners (categories, matches, notifications, settings)
+  └─ Vercel API calls (deposits, withdrawals, match join, promos)
+
+  ADMIN PANEL (admin/index.html)
+  ├─ Admin Auth (JWT session, PBKDF2 password)
+  ├─ RBAC: OWNER > SUPER_ADMIN > ADMIN (granular permissions)
+  └─ Vercel API calls (all management + SMS checker stats)
+
+  BACKEND (api/ on Vercel)
+  ├─ Firebase Admin SDK (server-side DB access)
+  ├─ Wallet Ledger (atomic, idempotent, immutable)
+  ├─ SMS Verification (device-authenticated, auto + manual)
+  ├─ Audit Logs (every sensitive action)
+  └─ Rate limiting + Security headers
+
+  ADMIN APK (android-app/)
+  ├─ WebView loads /admin/
+  ├─ Native SMS Receiver (payment SMS only)
+  ├─ Parser (configurable from backend)
+  ├─ Encrypted Sync Queue (offline support)
+  └─ Device Registration + Token Auth
+
+  DATABASE STRUCTURE (Firebase RTDB)
+  ├─ categories/{categoryId}
+  ├─ matches/{matchKey}
+  ├─ match_participants/{matchId}/{participantId}
+  ├─ users/{uid}
+  ├─ transactions/{uid}
+  ├─ wallet_ledger/{uid}/{ledgerId}
+  ├─ deposits/{depositId}
+  ├─ withdrawals/{withdrawalId}
+  ├─ referrals/{referralId}
+  ├─ promo_codes/{code}
+  ├─ promo_usage/{code}/{uid}
+  ├─ notifications/{notificationId}
+  ├─ app_settings (banners, update_info, sms_config, payment numbers)
+  ├─ admin_accounts/{adminId}
+  ├─ admin_sessions/{tokenHash}
+  ├─ admin_recovery_codes/{codeHash}
+  ├─ admin_devices/{deviceId}
+  ├─ audit_logs/{logId}
+  ├─ sms_transactions/{txId}
+  ├─ sms_trx_index/{method}/{trxId}
+  ├─ deposit_txids/{method}/{trxId}
+  └─ system/{match_id_seq, deposit_seq, withdrawal_seq}
+
+================================================================================
+  SECURITY CHECKLIST (ডিপ্লয় আগে verify করুন)
+================================================================================
+  [ ] Firebase Rules পাবলিশ করা (console-এ)
+  [ ] Vercel env: FIREBASE_SERVICE_ACCOUNT_B64, FIREBASE_DB_URL (prod + preview)
+  [ ] Owner bootstrap করা, recovery code সেভ করা
+  [ ] Admin Panel-এ login → Payment Settings → methods enabled
+  [ ] SMS Checker device register করা (APK বা web-এ)
+  [ ] Auto-verification ON/OFF ইচ্ছামতো (Payment Settings-এ)
+  [ ] Maintenance mode OFF (App Settings-এ)
+  [ ] Registration enabled (App Settings-এ)
+  [ ] Deposits/Withdrawals enabled (Payment Settings-এ)
+  [ ] Minimum withdrawal amount সেট (Payment Settings-এ)
+
+================================================================================
+  IMPORTANT NOTES
+================================================================================
+  ১. কোনো secret (password, token, service account) কখনো code-এ commit করবেন না।
+     .gitignore + .vercelignore এড করা আছে।
+
+  ২. Owner credential কখনো frontend-এ থাকবে না। শুধু bootstrap script-এ env variable দিয়ে।
+
+  ৩. Wallet balance শুধু backend লেজারের মাধ্যমে বদলায় — frontend কখনো overwrite করে না।
+
+  ৪. SMS APK আলাদা নয় — Admin APK-র ভিতরেই আছে (SmsReceiver + SmsBridgeService)।
+
+  ৫. Auto-verification OFF থাকলে SMS detect হলেও wallet credit হবেনা — Admin manually approve করবেন।
+
+  ৬. Duplicate transaction ID (sms_trx_index + deposit_txids) দিয়ে double credit blocked হয়।
+
+  ৭. সব financial operation idempotent (refId দিয়ে) — retry করলেও double charge হবেনা।
+
+  ৮. Admin permission deny-by-default — শুধু যেটা দিয়েছি সেটা পাবে।
+
+  ৯. Audit log immutable — Admin Panel-এ delete/edit বাটন নেই।
+
+  ১০. Maintenance mode ON করলে User App-এ maintenance screen দেখাবে, Admin Panel accessible থাকবে।
+
+================================================================================
+  CONTACT / SUPPORT
+================================================================================
+  Dev: Maim
+  Telegram: https://t.me/cr_maim
+  WhatsApp: +8801833515655
+
+  এই গাইড ফলো করলে ১০-১৫ মিনিটে production-ready system চলে যাবে।
+  কোনো সমস্যা হলে log চেক করুন (Vercel Functions log / Firebase console / APK log)।
 ================================================================================

@@ -1,8 +1,14 @@
-# Keep the WebView JS bridge methods (proxied via addJavascriptInterface).
+# ProGuard rules for WinningBD Admin APK
+-keep class com.winningbd.admin.** { *; }
+-keep interface com.winningbd.admin.** { *; }
 -keepclassmembers class * {
     @android.webkit.JavascriptInterface <methods>;
 }
-# Keep model classes used by reflection-free JSON parsing (paranoia for R8).
--keep class com.winningbd.admin.model.** { *; }
--keepattributes JavascriptInterface
--keepattributes *Annotation*
+-dontwarn org.json.**
+-dontwarn android.security.keystore.**
+-dontwarn javax.crypto.**
+
+# Keep native methods
+-keepclasseswithmembernames class * {
+    native <methods>;
+}

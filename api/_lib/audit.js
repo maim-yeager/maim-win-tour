@@ -3,6 +3,12 @@ const { db } = require('./firebase');
 // Immutable audit event for every important operation.
 async function auditLog({ admin, device, action, targetType, targetId, refId, reason, result, requestId }) {
     const logRef = db().ref('audit_logs').push();
+    // Previous code had a ternary-precedence bug: "...) ? null : null" always
+    // evaluated to null, so deviceId was never recorded even when present.
+    const session = admin && admin.session;
+    const deviceId = (device && device.id) ||
+        (session && (session.deviceId || (session.device && session.device.id))) ||
+        null;
     const entry = {
         adminId: (admin && admin.id) || (device && device.adminId) || null,
         role: (admin && admin.role) || (device && device.role) || null,
@@ -13,12 +19,9 @@ async function auditLog({ admin, device, action, targetType, targetId, refId, re
         reason: reason || null,
         result: result || 'SUCCESS',
         requestId: requestId || null,
-        deviceId: (device && device.id) || (admin && admin.session && admin.session.device) ? null : null,
+        deviceId,
         timestamp: Date.now()
     };
-    if (entry.deviceId === null && admin && admin.session && admin.session.deviceId) {
-        entry.deviceId = admin.session.deviceId;
-    }
     await logRef.set(entry);
     return logRef.key;
 }

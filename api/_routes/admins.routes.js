@@ -32,7 +32,13 @@ function defaultPermissions(role) {
     Object.keys(PERMISSIONS).forEach(k => { all[k] = true; });
     if (role === 'SUPER_ADMIN') {
         // Super Admin may not touch owner-level / dangerous security.
-        ['admins.create', 'admins.manage'].forEach(k => { all[k] = true; });
+        // FIX: this used to set these keys to true (a no-op, since every
+        // permission was already true from the loop above) — the opposite
+        // of what the comment says. Route handlers already gate the truly
+        // Owner-only actions with an explicit role check regardless of this
+        // permissions map, but the stored record itself should match the
+        // stated policy rather than silently granting everything.
+        ['admins.create', 'admins.manage'].forEach(k => { all[k] = false; });
         return all;
     }
     if (role === 'ADMIN') {

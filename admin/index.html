@@ -547,7 +547,12 @@ tbody tr:hover{background:#fafbfc}
     }
     state.page = page;
     if (location.hash !== '#/' + page) { try { history.replaceState(null, '', '#/' + page); } catch (e) {} }
-    render();
+    try {
+      render();
+    } catch (e) {
+      console.error('Navigation error:', e);
+      toast('Navigation failed: ' + (e.message || String(e)), 'err');
+    }
   }
 
   function render() {
@@ -559,7 +564,12 @@ tbody tr:hover{background:#fafbfc}
     var content = document.getElementById('content');
     var renderFn = RENDERERS[state.page];
     if (!renderFn) { content.innerHTML = empty('Page not found.'); return; }
-    renderFn(content);
+    try {
+      renderFn(content);
+    } catch (e) {
+      console.error('Render error for page:', state.page, e);
+      content.innerHTML = '<div class="card"><div class="form-msg err">Failed to load page: ' + esc(e.message || String(e)) + '</div></div>';
+    }
   }
 
   // ============================================================
@@ -2608,13 +2618,12 @@ tbody tr:hover{background:#fafbfc}
       (canSave ? '<button class="btn ' + (on ? 'btn-ghost' : 'btn-danger') + '" style="margin-top:14px" onclick="App.saveMaintenance()"><i class="fa-solid fa-' + (on ? 'circle-check' : 'triangle-exclamation') + '"></i> ' + (on ? 'Turn off maintenance' : 'Turn on maintenance') + '</button>' : '<p class="text-muted" style="font-size:12px;margin-top:10px">Requires SUPER_ADMIN + settings.manage.</p>') +
       '</div>';
   }
-  function saveMaintenance() {
+  async function saveMaintenance() {
     var r;
-    try { r = api('/admin/settings').then(function () {}); } catch (e) {}
-    var s = state.settings || {};
-    var enabled = !(s.maintenance_mode === true);
-    withReauth(enabled ? 'Enable maintenance' : 'Disable maintenance', async function () {
-      try { await api('/admin/settings/maintenance', { method: 'POST', body: JSON.stringify({ enabled: enabled }) }); toast(enabled ? 'Maintenance ON.' : 'Maintenance OFF.', 'ok'); App.refresh(); }
+    try { r = await api('/admin/settings'); } catch (e) { toast('Could not load current maintenance state.', 'err'); return; }
+    var on = !!(r.settings && r.settings.maintenance_mode === true);
+    withReauth(on ? 'Disable maintenance' : 'Enable maintenance', async function () {
+      try { await api('/admin/settings/maintenance', { method: 'POST', body: JSON.stringify({ enabled: !on }) }); toast(!on ? 'Maintenance ON.' : 'Maintenance OFF.', 'ok'); App.refresh(); }
       catch (e) { toast(e.message, 'err'); }
     });
   }

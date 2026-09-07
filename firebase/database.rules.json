@@ -31,7 +31,7 @@
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid",
-        ".validate": "newData.child('deposit').val() === 0 && newData.child('winning').val() === 0 || (data.exists() && newData.child('deposit').val() === data.child('deposit').val() && newData.child('winning').val() === data.child('winning').val())"
+        ".validate": "(!data.exists() && newData.child('deposit').val() === 0 && newData.child('winning').val() === 0) || (data.exists() && newData.child('deposit').val() === data.child('deposit').val() && newData.child('winning').val() === data.child('winning').val())"
       }
     },
 
