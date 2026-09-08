@@ -2,7 +2,7 @@
   WINNING BD — মোবাইল দিয়ে সম্পূর্ণ ডিপ্লয় গাইড (কোনো কম্পিউটার লাগবে না)
 ================================================================================
 
-প্রজেক্টের বিষয়বস্তু:mm
+প্রজেক্টের বিষয়বস্তু:
   - index.html            → User App
   - admin/index.html      → Admin Panel
   - api/                  → Backend (সব টাকার লেনদেন, Vercel Serverless)
@@ -36,7 +36,7 @@
 
   c) Build → Realtime Database → Create database → Start in production mode
      ডেটাবেস URL লিখে রাখুন (console-এ যা দেখাবে), যেমন:
-        https://winningbdupdate-default-rtdb.firebaseio.com
+        https://winningbdupdate-default-rtdb.asia-southeast1.firebasedatabase.app
      ⚠️ যদি console-এর URL ভিন্ন হয়, তাহলে index.html এর firebaseConfig databaseURL +
      নিচে ৩-এ দেওয়া FIREBASE_DB_URL মিলিয়ে নিন।
 
@@ -66,8 +66,8 @@
         # Environment Variables (Production + Preview):
         echo -n "$(cat /mnt/sdcard/1DM/winningbd-secrets/service-account.b64)" | vercel env add FIREBASE_SERVICE_ACCOUNT_B64 production
         echo -n "$(cat /mnt/sdcard/1DM/winningbd-secrets/service-account.b64)" | vercel env add FIREBASE_SERVICE_ACCOUNT_B64 preview
-        echo -n "https://winningbdupdate-default-rtdb.firebaseio.com" | vercel env add FIREBASE_DB_URL production
-        echo -n "https://winningbdupdate-default-rtdb.firebaseio.com" | vercel env add FIREBASE_DB_URL preview
+        echo -n "https://winningbdupdate-default-rtdb.asia-southeast1.firebasedatabase.app" | vercel env add FIREBASE_DB_URL production
+        echo -n "https://winningbdupdate-default-rtdb.asia-southeast1.firebasedatabase.app" | vercel env add FIREBASE_DB_URL preview
 
         vercel --prod          # সব deploy হয়ে যাবে
 
@@ -77,7 +77,7 @@
         - এদিকে Vercel → Add New Project → Import Git Repo
         - Settings → Environment Variables-এ দুইটি যোগ করুন
           (FIREBASE_SERVICE_ACCOUNT_B64 = service-account.b64 পুরোটা,
-           FIREBASE_DB_URL = ...default-rtdb.firebaseio.com)
+           FIREBASE_DB_URL = ...default-rtdb.asia-southeast1.firebasedatabase.app)
         - Deploy ✅
 
   ৩.৩ ডিপ্লয় শেষে হলেই চালু:
@@ -93,7 +93,7 @@
 ================================================================================
       cd /mnt/sdcard/1DM/winningbd
       FIREBASE_SERVICE_ACCOUNT_B64="$(cat /mnt/sdcard/1DM/winningbd-secrets/service-account.b64)" \
-      FIREBASE_DB_URL="https://winningbdupdate-default-rtdb.firebaseio.com" \
+      FIREBASE_DB_URL="https://winningbdupdate-default-rtdb.asia-southeast1.firebasedatabase.app" \
       OWNER_ID="OWNER1" OWNER_NAME="Your Name" OWNER_EMAIL="you@example.com" \
       OWNER_PASSWORD="strong-password-1" \
       npm run bootstrap:owner

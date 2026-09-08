@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="/domain-check.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WINNING BD</title>
@@ -731,56 +732,80 @@ textarea,
             color: var(--primary);
         }
         
+        /* ===== FLOATING ACTION BUTTONS (FAB) - ANIMATED ===== */
+        .fab-whatsapp, .fab-telegram {
+            position: fixed;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 39;
+            box-shadow: var(--shadow-neumorphic-sm);
+            border: none;
+            
+            /* Default hidden state */
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateX(120px) scale(0.5);
+            transition: opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        visibility 0.4s ease,
+                        transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
         .fab-whatsapp {
-            position: fixed;
-            bottom: 170px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 20px;
-            background: var(--bg-primary);
-            box-shadow: var(--shadow-neumorphic-sm);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s var(--transition-bounce);
-            z-index: 999;
-            border: 1px solid var(--glass-border);
+            bottom: 100px;
         }
+
         .fab-telegram {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 20px;
-            background: var(--bg-primary);
-            box-shadow: var(--shadow-neumorphic-sm);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s var(--transition-bounce);
-            z-index: 999;
-            border: 1px solid var(--glass-border);
+            bottom: 35px;
+            transition-delay: 0.05s, 0.05s, 0.08s;
         }
+
+        /* VISIBLE STATE - when home section active */
+        #home-view.show-fab .fab-whatsapp,
+        #home-view.show-fab .fab-telegram {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateX(0) scale(1);
+        }
+
         .fab-whatsapp:hover, .fab-telegram:hover {
-            transform: translateY(-8px) scale(1.1);
             box-shadow: var(--shadow-neumorphic);
+            transform: translateX(0) scale(1.1);
         }
+
         .fab-whatsapp:active, .fab-telegram:active {
-            transform: scale(0.95);
+            transform: translateX(0) scale(0.95);
             box-shadow: var(--shadow-neumorphic-inset-sm);
         }
+
+        /* Auto-hide animation */
+        .fab-whatsapp.hiding,
+        .fab-telegram.hiding {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(120px) scale(0.5);
+        }
+
         .fab-whatsapp i {
-            font-size: 32px;
+            font-size: 28px;
             color: #25D366;
             filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1));
+            pointer-events: none;
         }
+
         .fab-telegram img {
             width: 32px;
             height: 32px;
+            filter: brightness(0) invert(1);
+            pointer-events: none;
         }
         
         .back-nav {
@@ -2868,11 +2893,37 @@ textarea,
             </div>
             
             <div style="background: var(--bg-primary); border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow-neumorphic-sm);">
-                <label style="font-weight: 900; font-size: 0.9rem; display: block; margin-bottom: 10px; color: var(--text-dark);">Full Name</label>
-                <input type="text" id="edit-name" class="auth-input" placeholder="Enter your full name">
+                <!-- Profile Picture Upload -->
+                <div style="margin-bottom: 30px;">
+                    <label style="font-weight: 900; font-size: 0.9rem; display: block; margin-bottom: 15px; color: var(--text-dark);">
+                        <i class="fas fa-image"></i> Profile Picture
+                    </label>
+                    <div style="position: relative; width: 120px; margin: 0 auto 15px;">
+                        <img id="preview-profile-pic" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; box-shadow: var(--shadow-neumorphic-sm);">
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <input type="file" id="profile-pic-upload" accept="image/*" style="display: none;">
+                        <button onclick="document.getElementById('profile-pic-upload').click()" class="primary-btn" style="flex: 1; font-size: 0.9rem;">
+                            <i class="fas fa-camera"></i> Upload from Device
+                        </button>
+                        <button onclick="showProfilePictureGallery()" class="primary-btn" style="flex: 1; font-size: 0.9rem;">
+                            <i class="fas fa-images"></i> From Gallery
+                        </button>
+                    </div>
+                    <div id="profile-pic-msg" class="form-msg" style="font-size: 0.85rem; margin-bottom: 10px;"></div>
+                </div>
                 
-                <button class="primary-btn" onclick="saveProfile()" style="margin-top: 20px;">
-                    UPDATE PROFILE
+                <hr style="opacity: 0.2; margin: 20px 0;">
+                
+                <!-- Name Field -->
+                <label style="font-weight: 900; font-size: 0.9rem; display: block; margin-bottom: 10px; color: var(--text-dark);">
+                    <i class="fas fa-user"></i> Full Name
+                </label>
+                <input type="text" id="edit-name" class="auth-input" placeholder="Enter your full name" style="margin-bottom: 20px;">
+                
+                <button class="primary-btn" onclick="saveProfile()" style="width: 100%;">
+                    <i class="fas fa-save"></i> UPDATE PROFILE
                 </button>
             </div>
         </div>
@@ -2951,6 +3002,23 @@ textarea,
         <div class="auth-header">
             <div class="title">Welcome Back</div>
             <div class="subtitle">Sign in to your account</div>
+        </div>
+        
+        <!-- Google Sign-In Button -->
+        <button type="button" id="google-signin-btn" onclick="signInWithGoogle()" style="width:100%;padding:14px;margin-bottom:20px;background:#fff;border:2px solid #e0e0e0;border-radius:8px;cursor:pointer;font-weight:700;color:#333;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.3s;box-shadow:var(--shadow-neumorphic-sm);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            <span>Sign in with Google</span>
+        </button>
+        
+        <div style="display:flex;align-items:center;gap:10px;margin:20px 0;opacity:0.6;">
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+            <span style="font-size:0.85rem;color:var(--text-light);">or continue with email</span>
+            <div style="flex:1;height:1px;background:var(--border);"></div>
         </div>
         
         <input type="email" id="login-email" class="auth-input" placeholder="Email Address">
@@ -3771,6 +3839,8 @@ textarea,
                             depositBal = data.deposit || 0;
                             winningBal = data.winning || 0;
                             
+                            currentUserData.profilePicture = data.profilePicture || '';
+                            
                             document.getElementById('profile-name').innerText = currentUserData.name || 'User';
                             document.getElementById('profile-email').innerText = currentUserData.email || '';
                             document.getElementById('profile-bal-dep').innerText = depositBal;
@@ -3779,6 +3849,18 @@ textarea,
                             document.getElementById('deposit-available-wallet').innerText = depositBal;
                             document.getElementById('withdraw-available-wallet').innerText = winningBal;
                             document.getElementById('refer-code-display').innerText = user.uid.substring(0, 6).toUpperCase();
+                            
+                            // Update profile avatar
+                            const avatarEl = document.getElementById('profile-avatar');
+                            if (avatarEl && data.profilePicture) {
+                                avatarEl.src = data.profilePicture;
+                            }
+                            
+                            // Update preview in edit page
+                            const previewEl = document.getElementById('preview-profile-pic');
+                            if (previewEl && data.profilePicture) {
+                                previewEl.src = data.profilePicture;
+                            }
                         }
                     });
                 }
@@ -3948,8 +4030,21 @@ textarea,
             return;
         }
         try {
+            const updates = { username: name };
+            
+            if (userProfilePictureData && userProfilePictureData !== (currentUserData && currentUserData.profilePicture)) {
+                updates.profilePicture = userProfilePictureData;
+            }
+            
             await firebaseUpdateProfile(currentUser, { displayName: name });
-            await update(ref(db, 'users/' + currentUser.uid), { username: name });
+            await update(ref(db, 'users/' + currentUser.uid), updates);
+            
+            const avatarEl = document.getElementById('profile-avatar');
+            if (avatarEl && updates.profilePicture) {
+                avatarEl.src = updates.profilePicture;
+            }
+            
+            userProfilePictureData = null;
             showToast('Profile updated successfully!', 'success');
             setTimeout(() => navigateBack('profile'), 1500);
         } catch (error) {
@@ -4638,6 +4733,225 @@ setTimeout(() => {
         }
     });
 }, 2000);
+    // ========== GOOGLE SIGN-IN ==========
+    window.signInWithGoogle = async function() {
+        try {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
+            
+            const result = await auth.signInWithPopup(provider);
+            const user = result.user;
+            
+            const userRef = ref(db, 'users/' + user.uid);
+            const userSnap = await get(userRef);
+            
+            if (!userSnap.exists()) {
+                await set(userRef, {
+                    username: user.displayName || user.email.split('@')[0],
+                    email: user.email,
+                    phone: user.phoneNumber || '',
+                    profilePicture: user.photoURL || '',
+                    deposit: 0,
+                    winning: 0,
+                    created: serverTimestamp()
+                });
+            } else {
+                const userData = userSnap.val();
+                if (user.photoURL && !userData.profilePicture) {
+                    await update(userRef, { profilePicture: user.photoURL });
+                }
+            }
+            
+            showToast('Google sign-in successful!', 'success');
+            setTimeout(() => { document.getElementById('auth-container').style.visibility = 'hidden'; }, 500);
+        } catch (error) {
+            let message = 'Google sign-in failed.';
+            if (error.code === 'auth/popup-blocked') message = 'Popup blocked. Please enable popups.';
+            else if (error.code === 'auth/popup-closed-by-user') message = 'Sign-in cancelled.';
+            showToast(message, 'error');
+        }
+    };
+
+    // ========== PROFILE PICTURE MANAGEMENT ==========
+    let userProfilePictureData = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('profile-pic-upload');
+        if (input) input.addEventListener('change', handleProfilePicUpload);
+    });
+
+    function handleProfilePicUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        if (!file.type.startsWith('image/')) {
+            showToast('Please select an image file', 'error');
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('Image size must be less than 5MB', 'error');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            userProfilePictureData = evt.target.result;
+            const preview = document.getElementById('preview-profile-pic');
+            if (preview) preview.src = userProfilePictureData;
+            
+            const msg = document.getElementById('profile-pic-msg');
+            if (msg) {
+                msg.textContent = '✓ Image ready (click UPDATE PROFILE to save)';
+                msg.className = 'form-msg ok';
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    window.showProfilePictureGallery = function() {
+        if (!currentUser) {
+            showAuthScreen();
+            return;
+        }
+        
+        const html = '<div style="max-height:60vh;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:12px;padding:20px;" id="gallery-container">' +
+            '<div onclick="setProfilePictureFromUrl(\'https://cdn-icons-png.flaticon.com/512/149/149071.png\')" style="cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid var(--border);transition:all 0.3s;">' +
+            '<img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width:100%;height:100px;object-fit:cover;">' +
+            '</div></div>';
+        
+        document.getElementById('modal-root').innerHTML = '<div class="modal-backdrop"><div class="modal">' +
+            '<div class="modal-head"><h3>Select Profile Picture</h3><button class="icon-btn" onclick="closeExitModal()"><i class="fas fa-xmark"></i></button></div>' +
+            '<div class="modal-body">' + html + '</div>' +
+            '</div></div>';
+        
+        loadProfileGallery();
+    };
+
+    function loadProfileGallery() {
+        const container = document.getElementById('gallery-container');
+        if (!container) return;
+        
+        try {
+            onValue(ref(db, 'media_gallery'), (snapshot) => {
+                if (!snapshot.exists()) {
+                    container.innerHTML += '<div style="grid-column:1/-1;text-align:center;color:var(--text-light);">No gallery items</div>';
+                    return;
+                }
+                
+                snapshot.forEach(child => {
+                    const item = child.val();
+                    container.innerHTML += `<div onclick="setProfilePictureFromUrl('${escAttr(item.url)}')" style="cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid var(--border);transition:all 0.3s;position:relative;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                        <img src="${item.url}" style="width:100%;height:100px;object-fit:cover;">
+                        <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.5);color:#fff;font-size:10px;padding:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.label}</div>
+                    </div>`;
+                });
+            });
+        } catch (e) {
+            console.error('Error loading gallery:', e);
+        }
+    }
+
+    window.setProfilePictureFromUrl = function(url) {
+        userProfilePictureData = url;
+        const preview = document.getElementById('preview-profile-pic');
+        if (preview) preview.src = url;
+        closeExitModal();
+        
+        const msg = document.getElementById('profile-pic-msg');
+        if (msg) {
+            msg.textContent = '✓ Image ready (click UPDATE PROFILE to save)';
+            msg.className = 'form-msg ok';
+        }
+    };
+
+    // ========== FAB ANIMATION SYSTEM ==========
+    const FAB_AUTO_HIDE_DELAY = 4000;
+    let fabAutoHideTimer = null;
+
+    function setupFABInteraction() {
+        const homeSection = document.getElementById('home-view');
+        if (!homeSection) return;
+        
+        homeSection.addEventListener('pointerdown', function(e) {
+            if (e.target.closest('.fab-whatsapp') || e.target.closest('.fab-telegram')) return;
+            showFABButtons();
+        });
+    }
+
+    window.showFABButtons = function() {
+        const homeSection = document.getElementById('home-view');
+        const whatsappBtn = document.querySelector('.fab-whatsapp');
+        const telegramBtn = document.querySelector('.fab-telegram');
+        
+        if (!homeSection || !whatsappBtn || !telegramBtn) return;
+        
+        whatsappBtn.classList.remove('hiding');
+        telegramBtn.classList.remove('hiding');
+        homeSection.classList.add('show-fab');
+        
+        if (fabAutoHideTimer) clearTimeout(fabAutoHideTimer);
+        
+        fabAutoHideTimer = setTimeout(() => {
+            hideFABButtons();
+        }, FAB_AUTO_HIDE_DELAY);
+        
+        [whatsappBtn, telegramBtn].forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                if (fabAutoHideTimer) clearTimeout(fabAutoHideTimer);
+            });
+            btn.addEventListener('mouseleave', () => {
+                fabAutoHideTimer = setTimeout(() => {
+                    hideFABButtons();
+                }, FAB_AUTO_HIDE_DELAY);
+            });
+        });
+    };
+
+    window.hideFABButtons = function() {
+        const homeSection = document.getElementById('home-view');
+        const whatsappBtn = document.querySelector('.fab-whatsapp');
+        const telegramBtn = document.querySelector('.fab-telegram');
+        
+        if (!homeSection || !whatsappBtn || !telegramBtn) return;
+        
+        whatsappBtn.classList.add('hiding');
+        telegramBtn.classList.add('hiding');
+        homeSection.classList.remove('show-fab');
+        
+        if (fabAutoHideTimer) clearTimeout(fabAutoHideTimer);
+    };
+
+    function hideFABOnPageChange() {
+        const homeSection = document.getElementById('home-view');
+        if (homeSection) homeSection.classList.remove('show-fab');
+        const whatsappBtn = document.querySelector('.fab-whatsapp');
+        const telegramBtn = document.querySelector('.fab-telegram');
+        if (whatsappBtn) whatsappBtn.classList.add('hiding');
+        if (telegramBtn) telegramBtn.classList.add('hiding');
+    }
+
+    // Initialize FAB on load
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(setupFABInteraction, 500);
+    });
+
+    // Hook navigation to hide FABs
+    const origNavTo = window.navigateTo;
+    window.navigateTo = function(page, data, isInitial) {
+        hideFABOnPageChange();
+        return origNavTo.apply(this, arguments);
+    };
+
+    const origNavBack = window.navigateBack;
+    window.navigateBack = function(fallback) {
+        if (document.getElementById('home-view') && document.getElementById('home-view').classList.contains('active')) {
+            setupFABInteraction();
+        } else {
+            hideFABOnPageChange();
+        }
+        return origNavBack.apply(this, arguments);
+    };
+
     // ========== EXPOSE FUNCTIONS GLOBALLY ==========
     window.navigateTo = navigateTo;
     window.navigateBack = navigateBack;
@@ -4656,6 +4970,10 @@ setTimeout(() => {
     window.selectWithdrawMethod = selectWithdrawMethod;
     window.submitWithdraw = submitWithdraw;
     window.saveProfile = saveProfile;
+    window.handleProfilePicUpload = handleProfilePicUpload;
+    window.showProfilePictureGallery = showProfilePictureGallery;
+    window.setProfilePictureFromUrl = setProfilePictureFromUrl;
+    window.signInWithGoogle = signInWithGoogle;
     window.showAuthScreen = showAuthScreen;
     window.switchAuthPage = switchAuthPage;
     window.togglePassword = togglePassword;

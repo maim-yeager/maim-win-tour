@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/domain-check.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="robots" content="noindex, nofollow">
@@ -2531,9 +2532,25 @@ tbody tr:hover{background:#fafbfc}
   RENDERERS.settings = function (content) {
     content.innerHTML =
       '<div class="page-title"><div><h1>App Settings</h1><div class="sub">Branding, announcements, links, registration &amp; referral rules</div></div></div>' +
-      '<div id="settings-box"><div class="card"><div class="skeleton" style="height:240px"></div></div></div>';
-    loadSettings();
+      '<div style="margin-bottom:20px">' +
+        '<div class="page-title" style="margin-bottom:12px">' +
+          '<button class="btn ' + (state.settingsTab === 'media' ? 'btn-primary' : 'btn-ghost') + '" onclick="App.switchSettingsTab(\'general\')" style="margin-right:8px"><i class="fa-solid fa-gear"></i> General</button>' +
+          '<button class="btn ' + (state.settingsTab === 'media' ? 'btn-primary' : 'btn-ghost') + '" onclick="App.switchSettingsTab(\'media\')"><i class="fa-solid fa-image"></i> Media Gallery</button>' +
+        '</div>' +
+      '</div>' +
+      '<div id="settings-box"><div class="card"><div class="skeleton" style="height:240px"></div></div></div>' +
+      '<div id="media-gallery-box" style="display:' + (state.settingsTab === 'media' ? 'block' : 'none') + '"><div class="card"><div class="skeleton" style="height:240px"></div></div></div>';
+    if (state.settingsTab === 'media') {
+      loadMediaGallery();
+    } else {
+      loadSettings();
+    }
   };
+  
+  function switchSettingsTab(tab) {
+    state.settingsTab = tab;
+    render();
+  }
   async function loadSettings() {
     var box = document.getElementById('settings-box');
     if (!box) return;
@@ -2591,6 +2608,108 @@ tbody tr:hover{background:#fafbfc}
     withReauth('Save app settings', async function () {
       try { await api('/admin/settings', { method: 'PUT', body: JSON.stringify(Object.assign({}, state.settings || {}, patch)) }); toast('Settings saved.', 'ok'); App.refresh(); }
       catch (e) { var el = document.getElementById('st-msg'); if (el) { el.textContent = e.message; el.className = 'form-msg err'; } else toast(e.message, 'err'); }
+    });
+  }
+
+  // ============================================================
+  // MEDIA GALLERY MANAGEMENT
+  // ============================================================
+  async function loadMediaGallery() {
+    var box = document.getElementById('media-gallery-box');
+    if (!box) return;
+    
+    var canSave = isSuper() && can('settings.manage');
+    var s = state.settings || {};
+    
+    var html = '<div class="card">' +
+      (canSave ? '' : '<div class="notice warn" style="margin-bottom:16px"><i class="fa-solid fa-triangle-exclamation" style="margin-top:2px"></i><div>Read-only view. Only Owners/Super Admins can manage media.</div></div>') +
+      '<div class="card-title"><h3><i class="fa-solid fa-image"></i> Media Gallery</h3></div>' +
+      '<div style="margin-bottom:20px">' +
+        '<div class="field"><label>Add image from URL</label>' +
+        '<div style="display:flex;gap:8px;margin-bottom:10px">' +
+          '<input class="input" id="media-url-input" placeholder="https://example.com/image.jpg" style="flex:1">' +
+          '<input class="input" id="media-label-input" placeholder="Label (e.g., Logo, Banner 1)" style="flex:0.4">' +
+        '</div>' +
+        '<button class="btn btn-primary" ' + (canSave ? '' : 'disabled') + ' onclick="App.addMediaUrl()"><i class="fa-solid fa-plus"></i> Add image</button>' +
+        '</div>' +
+        '<div id="media-msg" class="form-msg" style="margin-bottom:10px"></div>' +
+      '</div>' +
+      '<div id="media-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px"></div>' +
+      '</div>';
+    
+    box.innerHTML = html;
+    loadMediaList();
+  }
+  
+  async function loadMediaList() {
+    var list = document.getElementById('media-list');
+    if (!list) return;
+    
+    try {
+      var r = await api('/admin/media');
+      var items = r.items || [];
+      var canSave = isSuper() && can('settings.manage');
+      
+      if (items.length === 0) {
+        list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted)"><i class="fa-solid fa-inbox"></i><p style="margin-top:10px">No images in gallery</p></div>';
+        return;
+      }
+      
+      list.innerHTML = items.map(function(item) {
+        return '<div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--card)">' +
+          '<div style="width:100%;height:100px;overflow:hidden;background:#f1f5f9">' +
+            '<img src="' + esc(item.url) + '" style="width:100%;height:100%;object-fit:cover" onerror="this.src=\'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22%3E%3Crect fill=%22%23ddd%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E">' +
+          '</div>' +
+          '<div style="padding:8px;font-size:12px;word-break:break-word">' +
+            '<div style="font-weight:600;margin-bottom:4px">' + esc(item.label || 'Image') + '</div>' +
+            (canSave ? '<button class="btn btn-ghost btn-sm" style="font-size:10px;width:100%" onclick="App.deleteMediaItem(' + j(item.id) + ')"><i class="fa-solid fa-trash"></i> Delete</button>' : '') +
+          '</div>' +
+        '</div>';
+      }).join('');
+    } catch (e) {
+      var msg = document.getElementById('media-msg');
+      if (msg) { msg.textContent = 'Error loading gallery: ' + e.message; msg.className = 'form-msg err'; }
+    }
+  }
+  
+  async function addMediaUrl() {
+    if (!(isSuper() && can('settings.manage'))) { toast('Insufficient permissions.', 'err'); return; }
+    var url = (document.getElementById('media-url-input') || {}).value || '';
+    var label = (document.getElementById('media-label-input') || {}).value || 'Image';
+    var msg = document.getElementById('media-msg');
+    
+    if (!url || !url.startsWith('http')) { 
+      if (msg) { msg.textContent = 'Please enter a valid image URL'; msg.className = 'form-msg err'; }
+      return; 
+    }
+    
+    try {
+      await api('/admin/media', { method: 'POST', body: JSON.stringify({ url: url, label: label }) });
+      if (msg) { msg.textContent = 'Image added successfully'; msg.className = 'form-msg ok'; }
+      document.getElementById('media-url-input').value = '';
+      document.getElementById('media-label-input').value = '';
+      setTimeout(function() { loadMediaList(); }, 500);
+    } catch (e) {
+      if (msg) { msg.textContent = 'Error: ' + e.message; msg.className = 'form-msg err'; }
+    }
+  }
+  
+  async function deleteMediaItem(id) {
+    if (!(isSuper() && can('settings.manage'))) { toast('Insufficient permissions.', 'err'); return; }
+    confirmDialog({
+      title: 'Delete image?',
+      message: 'This action cannot be undone.',
+      danger: true,
+      okText: 'Delete',
+      onOk: async function() {
+        try {
+          await api('/admin/media/' + id, { method: 'DELETE' });
+          toast('Image deleted', 'ok');
+          loadMediaList();
+        } catch (e) {
+          toast('Error: ' + e.message, 'err');
+        }
+      }
     });
   }
 
@@ -2725,14 +2844,35 @@ tbody tr:hover{background:#fafbfc}
     loadAudit: loadAudit,
     loadMaintenance: loadMaintenance, saveMaintenance: saveMaintenance,
     loadSettings: loadSettings, saveAppSettings: saveAppSettings, loadPaymentSettings: loadPaymentSettings, savePaymentSettings: savePaymentSettings,
+    loadMediaGallery: loadMediaGallery, addMediaUrl: addMediaUrl, deleteMediaItem: deleteMediaItem, switchSettingsTab: switchSettingsTab,
     loadSecurity: loadSecurity, logoutAllSessions: logoutAllSessions, changePassword: changePassword, doChangePassword: doChangePassword,
     verifyPasswordSelf: verifyPasswordSelf, generateMyRecoveryCode: generateMyRecoveryCode
   };
   window.App = App;
 
+  // Error logging to help debug issues
+  window.addEventListener('error', function(e) {
+    console.error('[Admin Panel Error]', e.message, e.filename + ':' + e.lineno);
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    console.error('[Unhandled Promise Rejection]', e.reason);
+  });
+
   window.addEventListener('hashchange', function () { if (state.admin) navigate(location.hash.replace('#/', '') || 'dashboard'); });
-  document.addEventListener('DOMContentLoaded', function () { init(); });
-  if (document.readyState !== 'loading') init();
+  document.addEventListener('DOMContentLoaded', function () { 
+    try { init(); }
+    catch (e) { 
+      console.error('[Init Error]', e);
+      showLogin();
+    }
+  });
+  if (document.readyState !== 'loading') {
+    try { init(); }
+    catch (e) { 
+      console.error('[Init Error (early)]', e);
+      showLogin();
+    }
+  }
 })();
 </script>
 </body>

@@ -19,3 +19,4 @@ require('./settings.routes');
 require('./devices.routes');
 require('./sms.routes');
 require('./user.routes');
+require('./media.routes');

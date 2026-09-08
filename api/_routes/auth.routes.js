@@ -14,7 +14,8 @@ route('POST', '/admin/auth/login', async (req, res) => {
     try {
         rateLimitOrThrow('login:' + (req.ip || req.headers['x-forwarded-for'] || 'g'), 10, 60000);
         const b = body(req);
-        const credential = asString(b.credential).toLowerCase(); // adminId or gmail
+        const credentialRaw = asString(b.credential); // adminId or gmail, as typed
+        const credential = credentialRaw.toLowerCase();
         const password = asString(b.password, 128);
         if (!credential || !password) throw fail(400, 'INVALID_CREDENTIALS', 'Please provide your credentials.');
 
@@ -23,12 +24,13 @@ route('POST', '/admin/auth/login', async (req, res) => {
             const snap = await db().ref('admin_accounts').orderByChild('email').equalTo(credential).limitToFirst(1).once('value');
             snap.forEach(child => { const v = child.val(); v.id = child.key; if (v.email === credential) admin = v; });
         } else {
-            // Bootstrap stores admin keys upper-cased (e.g. OWNER1); legacy records
-            // may be lower-cased. Try exact, upper, then lower so every format logs in.
-            const rawCred = asString(b.credential);
-            const upper = rawCred.toUpperCase();
-            const lower = rawCred.toLowerCase();
-            admin = await lookupAdminId(rawCred) || await lookupAdminId(upper) || await lookupAdminId(lower);
+            // FIX: admin IDs are always stored UPPERCASE (see admins.routes.js
+            // and scripts/bootstrap-owner.js), but this used to look up the
+            // lowercased credential — which never matched, so Admin-ID login
+            // (e.g. "OWNER1") always failed even with the correct password.
+            // Normalize the same way IDs are normalized at creation time.
+            const idKey = credentialRaw.toUpperCase().replace(/[^A-Za-z0-9_]/g, '');
+            admin = await db().ref('admin_accounts/' + idKey).once('value').then(s => s.val() ? { ...s.val(), id: idKey } : null);
         }
         if (!admin) throw fail(401, 'INVALID_CREDENTIALS', 'Invalid credentials.');
         if (!verifyPassword(password, admin)) {
@@ -62,8 +64,9 @@ route('GET', '/admin/auth/me', async (req, res) => {
 route('POST', '/admin/auth/security-code', async (req, res) => {
     try {
         const admin = await authenticateAdmin(req);
+        const token = (req.headers['authorization'] || '').slice(7).trim();
         rateLimitOrThrow('recovery:' + admin.id, 5, 3600000);
-        const code = await issueRecoveryCode(admin.id);
+        const code = await issueRecoveryCode(admin.id, { keepTokenHash: hashToken(token) });
         await auditLog({ admin, action: 'RECOVERY_CODE_GENERATED', targetType: 'ADMIN', targetId: admin.id });
         return ok(res, { code }); // returned to the authenticated admin only
     } catch (e) { return handleError(res, e); }
@@ -90,16 +93,4 @@ function sanitize(admin) {
         permissions: admin.permissions || {},
         createdAt: admin.createdAt || null
     };
-}
-
-async function lookupAdminId(adminId) {
-    if (!adminId) return null;
-    const snap = await db().ref('admin_accounts/' + adminId).once('value');
-    if (snap.exists()) {
-        const v = snap.val();
-        // Normalize the stored id to the DB key so admin.id reflects reality.
-        v.id = adminId;
-        return v;
-    }
-    return null;
 }
