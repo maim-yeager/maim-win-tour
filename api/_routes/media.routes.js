@@ -1,63 +1,55 @@
-// Media Gallery Management Routes
+const { route } = require('../_lib/router');
+const { ok, fail, handleError, body } = require('../_lib/respond');
+const { db } = require('../_lib/firebase');
+const { authenticateAdmin, requirePerm } = require('../_lib/auth');
+const { asString } = require('../_lib/validate');
+const { auditLog } = require('../_lib/audit');
 
-const express = require('express');
-const router = express.Router();
+// Media Gallery — images admins can pick from when setting banners/promos.
+// Rewritten to use this project's own dependency-free router (see _lib/router.js)
+// instead of Express, which was never a listed dependency and made every API
+// request fail at cold start (require('express') threw, crashing the whole
+// _routes/index.js require chain — including login).
 
-const { db, json, fail, needAuth, needRole, parseBody } = require('../_lib');
-
-// GET /media - List all media items
-router.get('/media', async (req, res) => {
-  try {
-    const snap = await db().ref('media_gallery').once('value');
-    const items = [];
-    if (snap.exists()) {
-      snap.forEach(child => {
-        items.push({
-          id: child.key,
-          ...child.val()
-        });
-      });
-    }
-    return res.json({ success: true, data: { items: items } });
-  } catch (e) {
-    return res.json({ success: false, error: { message: e.message } });
-  }
+route('GET', '/admin/media', async (req, res) => {
+    try {
+        await authenticateAdmin(req);
+        const snap = await db().ref('media_gallery').once('value');
+        const items = [];
+        if (snap.exists()) {
+            snap.forEach(child => { items.push(Object.assign({ id: child.key }, child.val())); });
+        }
+        items.sort((a, b) => (b.uploadedAt || 0) - (a.uploadedAt || 0));
+        return ok(res, { items });
+    } catch (e) { return handleError(res, e); }
 });
 
-// POST /media - Add media item (admin only)
-router.post('/media', needAuth, needRole('ADMIN'), async (req, res) => {
-  try {
-    const b = parseBody(req);
-    const url = String(b.url || '').trim();
-    const label = String(b.label || 'Image').trim();
-    
-    if (!url.startsWith('http')) {
-      return res.json({ success: false, error: { message: 'Invalid URL' } });
-    }
-    
-    const key = db().ref('media_gallery').push().key;
-    await db().ref('media_gallery/' + key).set({
-      url: url,
-      label: label,
-      uploadedAt: db().ServerValue.TIMESTAMP,
-      uploadedBy: req.admin.id
-    });
-    
-    return res.json({ success: true, data: { id: key } });
-  } catch (e) {
-    return res.json({ success: false, error: { message: e.message } });
-  }
+route('POST', '/admin/media', async (req, res) => {
+    try {
+        const admin = await authenticateAdmin(req);
+        requirePerm(admin, 'settings.manage');
+        const b = body(req);
+        const url = asString(b.url, 1000).trim();
+        const label = asString(b.label, 200).trim() || 'Image';
+        if (!/^https?:\/\//i.test(url)) throw fail(400, 'INVALID_URL', 'A valid image URL is required.');
+
+        const key = db().ref('media_gallery').push().key;
+        const item = { url, label, uploadedAt: Date.now(), uploadedBy: admin.id };
+        await db().ref('media_gallery/' + key).set(item);
+        await auditLog({ admin, action: 'MEDIA_ADDED', targetType: 'MEDIA', targetId: key });
+        return ok(res, { id: key, item: Object.assign({ id: key }, item) });
+    } catch (e) { return handleError(res, e); }
 });
 
-// DELETE /media/:id - Delete media item (admin only)
-router.delete('/media/:id', needAuth, needRole('ADMIN'), async (req, res) => {
-  try {
-    await db().ref('media_gallery/' + req.params.id).remove();
-    return res.json({ success: true, data: {} });
-  } catch (e) {
-    return res.json({ success: false, error: { message: e.message } });
-  }
+route('DELETE', '/admin/media/:id', async (req, res) => {
+    try {
+        const admin = await authenticateAdmin(req);
+        requirePerm(admin, 'settings.manage');
+        const id = asString(req.params.id, 200);
+        await db().ref('media_gallery/' + id).remove();
+        await auditLog({ admin, action: 'MEDIA_DELETED', targetType: 'MEDIA', targetId: id });
+        return ok(res, {});
+    } catch (e) { return handleError(res, e); }
 });
 
-module.exports = router;
-module.exports.path = '/admin';
+module.exports = {};

@@ -3172,7 +3172,7 @@ textarea,
     // =====================================================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, set, onValue, push, update, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile as firebaseUpdateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile as firebaseUpdateProfile, GoogleAuthProvider, signInWithRedirect, signInWithPopup, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCQd3OwkuOtMTnQq4sLijvFm1b1MO813TI",
@@ -4832,43 +4832,83 @@ setTimeout(() => {
     });
 }, 2000);
     // ========== GOOGLE SIGN-IN ==========
-    window.signInWithGoogle = async function() {
-        try {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            provider.setCustomParameters({ prompt: 'select_account' });
-            
-            const result = await auth.signInWithPopup(provider);
-            const user = result.user;
-            
-            const userRef = ref(db, 'users/' + user.uid);
-            const userSnap = await get(userRef);
-            
-            if (!userSnap.exists()) {
-                await set(userRef, {
-                    username: user.displayName || user.email.split('@')[0],
-                    email: user.email,
-                    phone: user.phoneNumber || '',
-                    profilePicture: user.photoURL || '',
-                    deposit: 0,
-                    winning: 0,
-                    created: serverTimestamp()
-                });
-            } else {
-                const userData = userSnap.val();
-                if (user.photoURL && !userData.profilePicture) {
-                    await update(userRef, { profilePicture: user.photoURL });
-                }
+    // NOTE: this project uses the Firebase v9 *modular* SDK everywhere else in
+    // this file (import { ... } from ".../firebase-auth.js"). The previous
+    // version of this function called `firebase.auth.GoogleAuthProvider()` and
+    // `auth.signInWithPopup()` — the old v8 *namespaced* API — but no `firebase`
+    // global is ever loaded on this page, so that threw a ReferenceError the
+    // instant the button was tapped (silently, since it's caught below) and
+    // the Google account picker never had a chance to open.
+    // Separately, `signInWithPopup` is unreliable on mobile: many mobile
+    // browsers block the popup outright, and in-app webviews (Facebook/
+    // Messenger/Instagram browser, common on Android) refuse to render
+    // Google's sign-in page inside a popup at all. `signInWithRedirect` avoids
+    // both problems by navigating the whole page instead of opening a popup.
+    let googleSignInInFlight = false;
+
+    async function finishGoogleSignIn(user) {
+        const userRef = ref(db, 'users/' + user.uid);
+        const userSnap = await get(userRef);
+        if (!userSnap.exists()) {
+            await set(userRef, {
+                username: user.displayName || (user.email ? user.email.split('@')[0] : 'Player'),
+                email: user.email || '',
+                phone: user.phoneNumber || '',
+                profilePicture: user.photoURL || '',
+                deposit: 0,
+                winning: 0,
+                created: serverTimestamp()
+            });
+        } else {
+            const userData = userSnap.val() || {};
+            if (user.photoURL && !userData.profilePicture) {
+                await update(userRef, { profilePicture: user.photoURL });
             }
-            
-            showToast('Google sign-in successful!', 'success');
-            setTimeout(() => { document.getElementById('auth-container').style.visibility = 'hidden'; }, 500);
+        }
+        showToast('Google sign-in successful!', 'success');
+        setTimeout(() => { document.getElementById('auth-container').style.visibility = 'hidden'; }, 500);
+    }
+
+    window.signInWithGoogle = async function() {
+        if (googleSignInInFlight) return;
+        googleSignInInFlight = true;
+        const btn = document.getElementById('google-signin-btn');
+        if (btn) btn.disabled = true;
+        try {
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
+            await signInWithRedirect(auth, provider);
+            // Execution stops here on success — the page navigates to Google
+            // and back. The signed-in user is picked up by getRedirectResult()
+            // below when this page reloads.
         } catch (error) {
-            let message = 'Google sign-in failed.';
-            if (error.code === 'auth/popup-blocked') message = 'Popup blocked. Please enable popups.';
-            else if (error.code === 'auth/popup-closed-by-user') message = 'Sign-in cancelled.';
+            console.error('Google sign-in error:', error);
+            let message = 'Google sign-in failed. Please try again.';
+            if (error.code === 'auth/unauthorized-domain') message = 'This domain is not authorized for Google sign-in in Firebase settings.';
+            else if (error.code === 'auth/operation-not-allowed') message = 'Google sign-in is not enabled for this app yet.';
             showToast(message, 'error');
+        } finally {
+            googleSignInInFlight = false;
+            if (btn) btn.disabled = false;
         }
     };
+
+    // Runs once on every page load; resolves with a user only right after
+    // returning from the Google redirect flow above (otherwise resolves null).
+    getRedirectResult(auth).then((result) => {
+        if (result && result.user) {
+            return finishGoogleSignIn(result.user);
+        }
+    }).catch((error) => {
+        console.error('Google redirect sign-in error:', error);
+        if (error && error.code && error.code !== 'auth/no-auth-event') {
+            let message = 'Google sign-in failed. Please try again.';
+            if (error.code === 'auth/account-exists-with-different-credential') {
+                message = 'An account already exists with this email using a different sign-in method.';
+            }
+            showToast(message, 'error');
+        }
+    });
 
     // ========== PROFILE PICTURE MANAGEMENT ==========
     let userProfilePictureData = null;
@@ -4962,125 +5002,59 @@ setTimeout(() => {
         }
     };
 
-    // ========== FAB ANIMATION SYSTEM ==========
-    const FAB_AUTO_HIDE_DELAY = 4000;
-    let fabAutoHideTimer = null;
-
-    // ========== FAB DOUBLE-TAP DETECTION ==========
-    let fabClickCount = 0;
-    let fabClickTimer = null;
-    const FAB_DOUBLE_CLICK_DELAY = 300; // 300ms to detect double-click
-
-    function setupFABInteraction() {
-        const homeSection = document.getElementById('home-view');
-        if (!homeSection) return;
-        
-        homeSection.addEventListener('pointerdown', function(e) {
-            // Ignore if clicking on FAB buttons, cards, buttons, or interactive elements
-            if (e.target.closest('.fab-whatsapp') || 
-                e.target.closest('.fab-telegram') ||
-                e.target.closest('button') ||
-                e.target.closest('.match-card') ||
-                e.target.closest('.cat-card') ||
-                e.target.closest('.menu-item') ||
-                e.target.closest('input') ||
-                e.target.closest('a')) {
-                return;
-            }
-            
-            // Count clicks
-            fabClickCount++;
-            
-            // Clear previous timer
-            if (fabClickTimer) clearTimeout(fabClickTimer);
-            
-            // If this is second click within 300ms -> double-tap detected
-            if (fabClickCount === 2) {
-                fabClickCount = 0;
-                showFABButtons();
-            } else {
-                // Reset counter if no second click within 300ms
-                fabClickTimer = setTimeout(() => {
-                    fabClickCount = 0;
-                }, FAB_DOUBLE_CLICK_DELAY);
-            }
-        });
-    }
-
+    // ========== FAB VISIBILITY ==========
+    // Previously these buttons were hidden by default and only appeared after
+    // a double-tap on an empty part of the home screen, then auto-hid again
+    // after 4 seconds (see FAB_DOUBLE_TAP_DOCUMENTATION.md). That made them
+    // effectively invisible in normal use. Changed to the standard pattern:
+    // visible whenever the Home tab is open, hidden on every other page.
     window.showFABButtons = function() {
         const homeSection = document.getElementById('home-view');
         const whatsappBtn = document.querySelector('.fab-whatsapp');
         const telegramBtn = document.querySelector('.fab-telegram');
-        
         if (!homeSection || !whatsappBtn || !telegramBtn) return;
-        
         whatsappBtn.classList.remove('hiding');
         telegramBtn.classList.remove('hiding');
         homeSection.classList.add('show-fab');
-        
-        if (fabAutoHideTimer) clearTimeout(fabAutoHideTimer);
-        
-        // Auto-hide after 4 seconds
-        fabAutoHideTimer = setTimeout(() => {
-            hideFABButtons();
-        }, FAB_AUTO_HIDE_DELAY);
-        
-        // Cancel auto-hide on button hover (mouse only)
-        [whatsappBtn, telegramBtn].forEach(btn => {
-            btn.addEventListener('mouseenter', () => {
-                if (fabAutoHideTimer) clearTimeout(fabAutoHideTimer);
-            });
-            btn.addEventListener('mouseleave', () => {
-                fabAutoHideTimer = setTimeout(() => {
-                    hideFABButtons();
-                }, FAB_AUTO_HIDE_DELAY);
-            });
-        });
     };
 
     window.hideFABButtons = function() {
         const homeSection = document.getElementById('home-view');
         const whatsappBtn = document.querySelector('.fab-whatsapp');
         const telegramBtn = document.querySelector('.fab-telegram');
-        
         if (!homeSection || !whatsappBtn || !telegramBtn) return;
-        
         whatsappBtn.classList.add('hiding');
         telegramBtn.classList.add('hiding');
         homeSection.classList.remove('show-fab');
-        
-        if (fabAutoHideTimer) clearTimeout(fabAutoHideTimer);
     };
 
-    function hideFABOnPageChange() {
+    function updateFABVisibility() {
         const homeSection = document.getElementById('home-view');
-        if (homeSection) homeSection.classList.remove('show-fab');
-        const whatsappBtn = document.querySelector('.fab-whatsapp');
-        const telegramBtn = document.querySelector('.fab-telegram');
-        if (whatsappBtn) whatsappBtn.classList.add('hiding');
-        if (telegramBtn) telegramBtn.classList.add('hiding');
+        if (homeSection && homeSection.classList.contains('active')) {
+            showFABButtons();
+        } else {
+            hideFABButtons();
+        }
     }
 
     // Initialize FAB on load
     document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(setupFABInteraction, 500);
+        setTimeout(updateFABVisibility, 500);
     });
 
-    // Hook navigation to hide FABs
+    // Hook navigation so FAB shows on Home and hides everywhere else
     const origNavTo = window.navigateTo;
     window.navigateTo = function(page, data, isInitial) {
-        hideFABOnPageChange();
-        return origNavTo.apply(this, arguments);
+        const result = origNavTo.apply(this, arguments);
+        updateFABVisibility();
+        return result;
     };
 
     const origNavBack = window.navigateBack;
     window.navigateBack = function(fallback) {
-        if (document.getElementById('home-view') && document.getElementById('home-view').classList.contains('active')) {
-            setupFABInteraction();
-        } else {
-            hideFABOnPageChange();
-        }
-        return origNavBack.apply(this, arguments);
+        const result = origNavBack.apply(this, arguments);
+        updateFABVisibility();
+        return result;
     };
 
     // ========== EXPOSE FUNCTIONS GLOBALLY ==========
