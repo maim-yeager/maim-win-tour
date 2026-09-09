@@ -1,6 +1,6 @@
 const { route } = require('../_lib/router');
 const { ok, fail, handleError, body } = require('../_lib/respond');
-const { db } = require('../_lib/firebase');
+const { db, admin: fbAdmin } = require('../_lib/firebase');
 const { authenticateAdmin, requirePerm } = require('../_lib/auth');
 const { asString, asInt, asNumber, asBool, matchPositiveMoney } = require('../_lib/validate');
 const { auditLog } = require('../_lib/audit');
@@ -282,6 +282,14 @@ route('POST', '/admin/matches/:key/finalize', async (req, res) => {
                 meta: { matchKey: key, place }
             });
             payouts.push({ name: pl.name, place, prize, uid, balanceAfterPrize: result.newBalance });
+            // Leaderboard aggregates: kept as plain top-level fields on the user
+            // record (not nested) so they stay orderByChild-queryable for the
+            // leaderboard endpoints. Atomic increment — safe even if this match
+            // pays the same user twice (e.g. squad captain + solo win elsewhere).
+            await db().ref('users/' + uid).update({
+                lb_earnings: fbAdmin.database.ServerValue.increment(prize),
+                lb_wins: fbAdmin.database.ServerValue.increment(1)
+            });
         }
 
         const winnerText = placements.map((p) => `${p.place}: ${p.name} (৳${p.prize})`).join('\n');

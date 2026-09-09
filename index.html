@@ -2499,6 +2499,11 @@ textarea,
                     <span>All Transactions</span>
                     <i class="fas fa-chevron-right" style="margin-left: auto; color: var(--text-light);"></i>
                 </div>
+                <div class="menu-item" onclick="navigateSub('leaderboard')">
+                    <img src="https://img.icons8.com/?size=100&id=53467&format=png&color=000000" alt="Leaderboard">
+                    <span>Leaderboard</span>
+                    <i class="fas fa-chevron-right" style="margin-left: auto; color: var(--text-light);"></i>
+                </div>
                 <div class="menu-item" onclick="navigateSub('notifications')">
                     <img src="https://img.icons8.com/?size=100&id=ds3fC4MMLVI6&format=png&color=000000" alt="Notifications">
                     <span>Notification</span>
@@ -2800,6 +2805,22 @@ textarea,
             <span>NOTIFICATIONS</span>
         </div>
         <div id="notif-list-container" style="padding: 20px;"></div>
+    </section>
+
+    <!-- ========== LEADERBOARD VIEW ========== -->
+    <section id="leaderboard-view" class="app-section">
+        <div class="back-nav" onclick="navigateBack('profile')">
+            <i class="fas fa-arrow-left"></i>
+            <span>LEADERBOARD</span>
+        </div>
+        <div style="padding: 0 20px 20px;">
+            <div id="leaderboard-me" class="glassmorphic" style="margin-bottom: 16px; padding: 16px 18px;"></div>
+            <div class="matches-search-box" style="margin-bottom: 16px;">
+                <i class="fas fa-search"></i>
+                <input type="search" id="leaderboard-search-input" placeholder="Search your name or a friend's..." oninput="onLeaderboardSearch(this.value)">
+            </div>
+            <div id="leaderboard-list"></div>
+        </div>
     </section>
 
     <!-- ========== REFER & EARN VIEW ========== -->
@@ -3343,6 +3364,8 @@ textarea,
                     loadHistory();
                 } else if (subPage === 'notifications') {
                     loadNotifications();
+                } else if (subPage === 'leaderboard') {
+                    loadLeaderboard();
                 }
             } else {
                 // fallback to section
@@ -3420,7 +3443,7 @@ textarea,
         if (ignorePopState) return;
         const page = getPageFromURL();
         // Determine if it's a sub page or main
-        const subViews = ['wallet', 'add-money', 'withdraw', 'history', 'notifications', 'refer', 'edit-profile', 'developer-profile'];
+        const subViews = ['wallet', 'add-money', 'withdraw', 'history', 'notifications', 'leaderboard', 'refer', 'edit-profile', 'developer-profile'];
         if (subViews.includes(page)) {
             navigateTo('profile', page, true);
         } else {
@@ -4436,6 +4459,81 @@ textarea,
         }, { onlyOnce: false }); // Changed to false to keep listening for updates
     }
 
+    function escapeHtmlLb(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
+    }
+
+    let lbSearchTimer = null;
+    function onLeaderboardSearch(val) {
+        clearTimeout(lbSearchTimer);
+        lbSearchTimer = setTimeout(function () { loadLeaderboard((val || '').trim()); }, 350);
+    }
+
+    function renderLeaderboardMe(me) {
+        const el = document.getElementById('leaderboard-me');
+        if (!el) return;
+        if (!currentUser) {
+            el.innerHTML = '<div style="text-align:center;color:var(--text-medium);font-weight:700;">Login to see your rank</div>';
+            return;
+        }
+        if (!me) {
+            el.innerHTML = '<div style="text-align:center;color:var(--text-medium);font-weight:700;">Win a match to appear on the leaderboard! \ud83c\udfc6</div>';
+            return;
+        }
+        el.innerHTML = '<div style="display:flex;align-items:center;gap:14px;">' +
+            '<div style="width:46px;height:46px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;">#' + me.rank + '</div>' +
+            '<div style="flex:1;"><div style="font-weight:900;color:var(--text-dark);">Your Rank</div>' +
+            '<div style="font-size:0.8rem;color:var(--text-medium);">' + (me.wins || 0) + ' wins &bull; \u09f3' + Number(me.earnings || 0).toLocaleString() + ' earned</div></div></div>';
+    }
+
+    function renderLeaderboardRows(rows, emptyText) {
+        const container = document.getElementById('leaderboard-list');
+        if (!container) return;
+        if (!rows || !rows.length) {
+            container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-light); font-weight: 700;">' + escapeHtmlLb(emptyText) + '</div>';
+            return;
+        }
+        container.innerHTML = rows.map(function (p) {
+            const isMe = currentUser && p.uid === currentUser.uid;
+            const medal = p.rank === 1 ? '\ud83e\udd47' : p.rank === 2 ? '\ud83e\udd48' : p.rank === 3 ? '\ud83e\udd49' : ('#' + p.rank);
+            return '<div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--radius-md);margin-bottom:12px;background:var(--bg-primary);box-shadow:' +
+                (isMe ? 'var(--shadow-neumorphic-inset-sm);border:2px solid var(--primary);' : 'var(--shadow-neumorphic-sm);') + '">' +
+                '<div style="width:34px;text-align:center;font-weight:900;font-size:1.05rem;">' + medal + '</div>' +
+                '<div style="width:38px;height:38px;border-radius:50%;background:var(--secondary-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">' +
+                    escapeHtmlLb((p.username || 'P').trim().charAt(0).toUpperCase()) + '</div>' +
+                '<div style="flex:1;overflow:hidden;">' +
+                    '<div style="font-weight:800;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtmlLb(p.username || 'Player') + (isMe ? ' (You)' : '') + '</div>' +
+                    '<div style="font-size:0.75rem;color:var(--text-light);">' + (p.wins || 0) + ' match wins</div>' +
+                '</div>' +
+                '<div style="font-weight:900;color:var(--success);white-space:nowrap;">\u09f3' + Number(p.earnings || 0).toLocaleString() + '</div>' +
+            '</div>';
+        }).join('');
+    }
+
+    async function loadLeaderboard(query) {
+        const meEl = document.getElementById('leaderboard-me');
+        const listEl = document.getElementById('leaderboard-list');
+        if (!listEl) return;
+        if (!currentUser) {
+            if (meEl) meEl.innerHTML = '<div style="text-align:center;color:var(--text-medium);font-weight:700;">Login to see the leaderboard</div>';
+            listEl.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-light); font-weight: 700;">Please login to view the leaderboard</div>';
+            return;
+        }
+        listEl.innerHTML = '<div style="text-align: center; padding: 30px;"><i class="fas fa-spinner fa-spin" style="color: var(--primary); font-size: 1.4rem;"></i></div>';
+        try {
+            const path = '/leaderboard' + (query ? ('?q=' + encodeURIComponent(query)) : '');
+            const data = await apiFetch(path);
+            renderLeaderboardMe(data && data.me);
+            if (query) {
+                renderLeaderboardRows(data && data.matches, 'No player found with that name');
+            } else {
+                renderLeaderboardRows(data && data.top, 'No one has won a prize yet \u2014 be the first!');
+            }
+        } catch (e) {
+            listEl.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--danger); font-weight: 700;">' + escapeHtmlLb(e.message || 'Failed to load leaderboard') + '</div>';
+        }
+    }
+
     function loadNotifications() {
         const notifRef = ref(db, 'notifications');
         onValue(notifRef, (snapshot) => {
@@ -4868,13 +4966,44 @@ setTimeout(() => {
     const FAB_AUTO_HIDE_DELAY = 4000;
     let fabAutoHideTimer = null;
 
+    // ========== FAB DOUBLE-TAP DETECTION ==========
+    let fabClickCount = 0;
+    let fabClickTimer = null;
+    const FAB_DOUBLE_CLICK_DELAY = 300; // 300ms to detect double-click
+
     function setupFABInteraction() {
         const homeSection = document.getElementById('home-view');
         if (!homeSection) return;
         
         homeSection.addEventListener('pointerdown', function(e) {
-            if (e.target.closest('.fab-whatsapp') || e.target.closest('.fab-telegram')) return;
-            showFABButtons();
+            // Ignore if clicking on FAB buttons, cards, buttons, or interactive elements
+            if (e.target.closest('.fab-whatsapp') || 
+                e.target.closest('.fab-telegram') ||
+                e.target.closest('button') ||
+                e.target.closest('.match-card') ||
+                e.target.closest('.cat-card') ||
+                e.target.closest('.menu-item') ||
+                e.target.closest('input') ||
+                e.target.closest('a')) {
+                return;
+            }
+            
+            // Count clicks
+            fabClickCount++;
+            
+            // Clear previous timer
+            if (fabClickTimer) clearTimeout(fabClickTimer);
+            
+            // If this is second click within 300ms -> double-tap detected
+            if (fabClickCount === 2) {
+                fabClickCount = 0;
+                showFABButtons();
+            } else {
+                // Reset counter if no second click within 300ms
+                fabClickTimer = setTimeout(() => {
+                    fabClickCount = 0;
+                }, FAB_DOUBLE_CLICK_DELAY);
+            }
         });
     }
 
@@ -4891,10 +5020,12 @@ setTimeout(() => {
         
         if (fabAutoHideTimer) clearTimeout(fabAutoHideTimer);
         
+        // Auto-hide after 4 seconds
         fabAutoHideTimer = setTimeout(() => {
             hideFABButtons();
         }, FAB_AUTO_HIDE_DELAY);
         
+        // Cancel auto-hide on button hover (mouse only)
         [whatsappBtn, telegramBtn].forEach(btn => {
             btn.addEventListener('mouseenter', () => {
                 if (fabAutoHideTimer) clearTimeout(fabAutoHideTimer);
@@ -4958,6 +5089,8 @@ setTimeout(() => {
     window.updateURL = updateURL;
     window.loadHistory = loadHistory;
     window.loadNotifications = loadNotifications;
+    window.loadLeaderboard = loadLeaderboard;
+    window.onLeaderboardSearch = onLeaderboardSearch;
     window.startSlider = startSlider;
     window.filterMatchTab = filterMatchTab;
     window.prepJoin = prepJoin;

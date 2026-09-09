@@ -442,7 +442,8 @@ tbody tr:hover{background:#fafbfc}
       { page: 'wallet', label: 'Wallet', icon: 'fa-wallet', perm: 'wallet.view' },
       { page: 'deposits', label: 'Deposits', icon: 'fa-arrow-down-to-bracket', perm: 'deposits.view' },
       { page: 'withdrawals', label: 'Withdrawals', icon: 'fa-arrow-up-from-bracket', perm: 'withdrawals.view' },
-      { page: 'referrals', label: 'Referrals', icon: 'fa-user-plus', perm: 'referrals.view' }
+      { page: 'referrals', label: 'Referrals', icon: 'fa-user-plus', perm: 'referrals.view' },
+      { page: 'leaderboard', label: 'Leaderboard', icon: 'fa-ranking-star', perm: 'users.view' }
     ]},
     { group: 'Game Content', items: [
       { page: 'categories', label: 'Match Categories', icon: 'fa-tags', perm: 'categories.view' },
@@ -1367,6 +1368,35 @@ tbody tr:hover{background:#fafbfc}
         catch (e) { toast(e.message, 'err'); }
       });
     }});
+  }
+
+  // ============================================================
+  // LEADERBOARD
+  // ============================================================
+  var lbState = { q: '' };
+  RENDERERS.leaderboard = function (content) {
+    content.innerHTML =
+      '<div class="page-title"><div><h1>Leaderboard</h1><div class="sub">Ranked by lifetime match-prize earnings</div></div></div>' +
+      '<div class="toolbar"><input class="input" style="max-width:280px" id="lb-q" placeholder="Search player\u2026" value="' + esc(lbState.q) + '" onkeydown="if(event.key===\'Enter\')App.loadLeaderboardAdmin()"><button class="btn btn-primary" onclick="App.loadLeaderboardAdmin()"><i class="fa-solid fa-magnifying-glass"></i></button></div>' +
+      '<div id="lb-box">' + skeletonRows(6) + '</div>';
+    loadLeaderboardAdmin();
+  };
+  async function loadLeaderboardAdmin() {
+    var box = document.getElementById('lb-box');
+    if (!box) return;
+    lbState.q = document.getElementById('lb-q') ? document.getElementById('lb-q').value.trim() : lbState.q;
+    box.innerHTML = skeletonRows(6);
+    var r;
+    try { r = await api('/admin/leaderboard?q=' + encodeURIComponent(lbState.q) + '&limit=100'); }
+    catch (e) { box.innerHTML = '<div class="card"><div class="form-msg err">' + esc(e.message) + '</div></div>'; return; }
+    var items = r.top || [];
+    if (!items.length) { box.innerHTML = empty('No players have won a prize yet.'); return; }
+    box.innerHTML = '<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Player</th><th>User ID</th><th>Wins</th><th>Total Earnings</th></tr></thead><tbody>' +
+      items.map(function (p) {
+        var medal = p.rank === 1 ? '\ud83e\udd47 ' : p.rank === 2 ? '\ud83e\udd48 ' : p.rank === 3 ? '\ud83e\udd49 ' : '';
+        return '<tr><td>' + medal + '#' + p.rank + '</td><td>' + esc(p.username) + '</td><td class="mono">' + esc(p.uid) + '</td><td>' + esc(p.wins) + '</td><td class="mono">' + tk(p.earnings) + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<div class="info" style="margin-top:10px">Showing ' + items.length + ' of ' + r.totalRanked + ' ranked players</div>';
   }
 
   // ============================================================
@@ -2826,6 +2856,7 @@ tbody tr:hover{background:#fafbfc}
     cancelMatch: cancelMatch, deleteMatch: deleteMatch, finalizeMatch: finalizeMatch, saveFinalize: saveFinalize,
     addPlacement: addPlacement, fillFinalize: fillFinalize, setPlacePrize: setPlacePrize, removePlace: removePlace,
     loadReferrals: loadReferrals, claimReferral: claimReferral,
+    loadLeaderboardAdmin: loadLeaderboardAdmin,
     loadPromos: loadPromos, newPromo: newPromo, editPromo: editPromo, savePromo: savePromo, togglePromo: togglePromo, deletePromo: deletePromo,
     loadDeposits: loadDeposits, openDeposit: openDeposit, approveDeposit: approveDeposit, rejectDeposit: rejectDeposit,
     markManualReview: markManualReview, addDepositNote: addDepositNote,

@@ -84,9 +84,9 @@
       <body>
         <div class="container">
           <div class="logo">🎮</div>
-          <div class="title">WINNING BD</div>
+          <div class="title">WINNING TOUR</div>
           <div class="subtitle">Tournament Platform</div>
-          <div class="message">এই এপসটা কি তোর নানার নাকি?</div>
+          <div class="message">এই এপসটা কি তোর নানার নাকি খানকির ছেলে?</div>
           <div class="detail">
             ⚠️ Unauthorized domain detected<br>
             Domain: ${hostname}

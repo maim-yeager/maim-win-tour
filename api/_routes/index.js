@@ -20,3 +20,4 @@ require('./devices.routes');
 require('./sms.routes');
 require('./user.routes');
 require('./media.routes');
+require('./leaderboard.routes');
