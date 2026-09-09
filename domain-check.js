@@ -1,1071 +1,167 @@
+<!-- domain-check.js -->
 <script>
-(function () {
-  "use strict";
+(function() {
+  'use strict';
 
-  /* =========================================================
-     WINNING BD — DOMAIN SECURITY
-     ========================================================= */
-
+  // ===== SECURITY CONFIG =====
   const ALLOWED_DOMAINS = [
-    "winning-tour-web.vercel.app",
-    "",
-    ""
+    'winning-tour-web.vercel.app',
+    'localhost',
+    '127.0.0.1'
   ];
 
-  const hostname = window.location.hostname
-    .toLowerCase()
-    .replace(/\.$/, "");
-
-  const isAllowed = ALLOWED_DOMAINS.some(domain =>
-    hostname === domain ||
-    hostname.endsWith("." + domain)
-  );
-
-  /* =========================================================
-     AUTHORIZED DOMAIN
-     ========================================================= */
-
-  if (isAllowed) {
-    return;
-  }
-
-  /* =========================================================
-     UNAUTHORIZED DOMAIN
-     ========================================================= */
-
-  try {
-    window.stop();
-  } catch (_) {}
-
-  function escapeHTML(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  const currentDomain = escapeHTML(hostname);
-
-  document.documentElement.innerHTML = `
-<!DOCTYPE html>
-
-<html lang="en">
-
-<head>
-
-<meta charset="UTF-8">
-
-<meta
-  name="viewport"
-  content="width=device-width,
-  initial-scale=1.0,
-  maximum-scale=1.0,
-  user-scalable=no"
->
-
-<meta
-  name="robots"
-  content="noindex,nofollow,noarchive"
->
-
-<title>Access Restricted • WINNING TOUR</title>
-
-<style>
-
-/* =========================================================
-   RESET
-   ========================================================= */
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html,
-body {
-  width: 100%;
-  min-height: 100%;
-}
-
-body {
-
-  min-height: 100vh;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 20px;
-
-  overflow: hidden;
-
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-
-  color: #fff;
-
-  background:
-    radial-gradient(
-      circle at 15% 15%,
-      rgba(255, 180, 80, .35),
-      transparent 30%
-    ),
-
-    radial-gradient(
-      circle at 85% 20%,
-      rgba(255, 92, 92, .30),
-      transparent 30%
-    ),
-
-    radial-gradient(
-      circle at 50% 100%,
-      rgba(255, 120, 40, .25),
-      transparent 40%
-    ),
-
-    linear-gradient(
-      135deg,
-      #140807 0%,
-      #28100b 35%,
-      #1a0710 70%,
-      #08070d 100%
-    );
-
-}
-
-/* =========================================================
-   ANIMATED BACKGROUND
-   ========================================================= */
-
-.background {
-  position: fixed;
-  inset: 0;
-
-  overflow: hidden;
-
-  pointer-events: none;
-}
-
-/* Floating blobs */
-
-.blob {
-
-  position: absolute;
-
-  width: 280px;
-  height: 280px;
-
-  border-radius: 50%;
-
-  filter: blur(80px);
-
-  opacity: .35;
-
-  animation:
-    floating 10s ease-in-out infinite;
-
-}
-
-.blob.one {
-
-  top: -100px;
-  left: -100px;
-
-  background:
-    #ffb347;
-
-}
-
-.blob.two {
-
-  right: -120px;
-  top: 20%;
-
-  background:
-    #ff5f6d;
-
-  animation-delay: -3s;
-
-}
-
-.blob.three {
-
-  left: 30%;
-  bottom: -180px;
-
-  background:
-    #ff7b39;
-
-  animation-delay: -6s;
-
-}
-
-@keyframes floating {
-
-  0%,
-  100% {
-    transform:
-      translate3d(0, 0, 0)
-      scale(1);
-  }
-
-  50% {
-    transform:
-      translate3d(35px, -30px, 0)
-      scale(1.12);
-  }
-
-}
-
-/* =========================================================
-   MOVING LIGHT
-   ========================================================= */
-
-.light {
-
-  position: absolute;
-
-  width: 500px;
-  height: 500px;
-
-  border-radius: 50%;
-
-  background:
-    radial-gradient(
-      circle,
-      rgba(255, 190, 100, .13),
-      transparent 65%
-    );
-
-  animation:
-    rotateLight 18s linear infinite;
-
-}
-
-@keyframes rotateLight {
-
-  0% {
-    transform:
-      translate(-30%, -30%)
-      rotate(0deg);
-  }
-
-  50% {
-    transform:
-      translate(80%, 50%)
-      rotate(180deg);
-  }
-
-  100% {
-    transform:
-      translate(-30%, -30%)
-      rotate(360deg);
-  }
-
-}
-
-/* =========================================================
-   PARTICLES
-   ========================================================= */
-
-.particles {
-
-  position: absolute;
-  inset: 0;
-
-  background-image:
-    radial-gradient(
-      rgba(255,255,255,.20) 1px,
-      transparent 1px
-    );
-
-  background-size: 34px 34px;
-
-  opacity: .12;
-
-  animation:
-    particlesMove 20s linear infinite;
-
-}
-
-@keyframes particlesMove {
-
-  from {
-    transform:
-      translateY(0);
-  }
-
-  to {
-    transform:
-      translateY(-34px);
-  }
-
-}
-
-/* =========================================================
-   MAIN CARD
-   ========================================================= */
-
-.card {
-
-  position: relative;
-
-  width: min(100%, 470px);
-
-  padding:
-    42px
-    30px
-    30px;
-
-  text-align: center;
-
-  border-radius: 32px;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255,255,255,.13),
-      rgba(255,255,255,.045)
-    );
-
-  border:
-    1px solid
-    rgba(255,255,255,.16);
-
-  backdrop-filter:
-    blur(25px);
-
-  -webkit-backdrop-filter:
-    blur(25px);
-
-  box-shadow:
-
-    0 35px 100px
-    rgba(0,0,0,.55),
-
-    inset 0 1px 0
-    rgba(255,255,255,.15),
-
-    0 0 60px
-    rgba(255,115,50,.08);
-
-  animation:
-    cardEnter .8s
-    cubic-bezier(.2,.8,.2,1)
-    forwards;
-
-}
-
-/* Animated border */
-
-.card::before {
-
-  content: "";
-
-  position: absolute;
-
-  inset: -1px;
-
-  border-radius: 33px;
-
-  padding: 1px;
-
-  background:
-    linear-gradient(
-      120deg,
-      transparent,
-      rgba(255,190,100,.7),
-      transparent,
-      rgba(255,90,90,.6),
-      transparent
-    );
-
-  background-size: 300% 300%;
-
-  animation:
-    borderMove 6s linear infinite;
-
-  -webkit-mask:
-    linear-gradient(#fff 0 0)
-    content-box,
-    linear-gradient(#fff 0 0);
-
-  -webkit-mask-composite: xor;
-
-  mask-composite: exclude;
-
-  pointer-events: none;
-
-}
-
-@keyframes borderMove {
-
-  0% {
-    background-position:
-      0% 50%;
-  }
-
-  50% {
-    background-position:
-      100% 50%;
-  }
-
-  100% {
-    background-position:
-      0% 50%;
-  }
-
-}
-
-@keyframes cardEnter {
-
-  from {
-
-    opacity: 0;
-
-    transform:
-      translateY(35px)
-      scale(.92);
-
-    filter:
-      blur(8px);
-
-  }
-
-  to {
-
-    opacity: 1;
-
-    transform:
-      translateY(0)
-      scale(1);
-
-    filter:
-      blur(0);
-
-  }
-
-}
-
-/* =========================================================
-   SECURITY ICON
-   ========================================================= */
-
-.security-icon {
-
-  position: relative;
-
-  width: 100px;
-  height: 100px;
-
-  margin:
-    0 auto
-    25px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 30px;
-
-  font-size: 44px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #ffb347,
-      #ff6b4a,
-      #ff4d6d
-    );
-
-  box-shadow:
-
-    0 15px 45px
-    rgba(255,105,60,.30),
-
-    inset 0 1px 1px
-    rgba(255,255,255,.4);
-
-  animation:
-    iconFloat 3s
-    ease-in-out infinite;
-
-}
-
-.security-icon::before {
-
-  content: "";
-
-  position: absolute;
-
-  inset: -10px;
-
-  border-radius: 35px;
-
-  border:
-    1px solid
-    rgba(255,180,100,.25);
-
-  animation:
-    iconRing 2.5s
-    ease-out infinite;
-
-}
-
-@keyframes iconFloat {
-
-  0%,
-  100% {
-    transform:
-      translateY(0)
-      rotate(0deg);
-  }
-
-  50% {
-    transform:
-      translateY(-8px)
-      rotate(2deg);
-  }
-
-}
-
-@keyframes iconRing {
-
-  0% {
-
-    transform:
-      scale(.85);
-
-    opacity: .8;
-
-  }
-
-  100% {
-
-    transform:
-      scale(1.2);
-
-    opacity: 0;
-
-  }
-
-}
-
-/* =========================================================
-   BRAND
-   ========================================================= */
-
-.brand {
-
-  font-size: 12px;
-
-  font-weight: 900;
-
-  letter-spacing: 4px;
-
-  margin-bottom: 9px;
-
-  background:
-    linear-gradient(
-      90deg,
-      #ffd27a,
-      #ff8b5c,
-      #ffb347
-    );
-
-  -webkit-background-clip: text;
-  background-clip: text;
-
-  color: transparent;
-
-}
-
-/* =========================================================
-   TITLE
-   ========================================================= */
-
-.title {
-
-  font-size:
-    clamp(28px, 7vw, 38px);
-
-  font-weight: 950;
-
-  letter-spacing: -.8px;
-
-  margin-bottom: 12px;
-
-  background:
-    linear-gradient(
-      120deg,
-      #fff,
-      #ffd8b0,
-      #ff9b72
-    );
-
-  -webkit-background-clip: text;
-  background-clip: text;
-
-  color: transparent;
-
-}
-
-/* =========================================================
-   DESCRIPTION
-   ========================================================= */
-
-.subtitle {
-
-  max-width: 360px;
-
-  margin:
-    0 auto;
-
-  color:
-    rgba(255,255,255,.62);
-
-  font-size: 14px;
-
-  line-height: 1.7;
-
-}
-
-/* =========================================================
-   WARNING BOX
-   ========================================================= */
-
-.warning {
-
-  margin:
-    28px 0
-    20px;
-
-  padding: 20px;
-
-  border-radius: 20px;
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(255,173,72,.10),
-      rgba(255,80,80,.06)
-    );
-
-  border:
-    1px solid
-    rgba(255,171,75,.20);
-
-  box-shadow:
-    inset 0 1px
-    rgba(255,255,255,.04);
-
-}
-
-.warning-icon {
-
-  font-size: 23px;
-
-  margin-bottom: 8px;
-
-}
-
-.warning-title {
-
-  font-size: 16px;
-
-  font-weight: 850;
-
-  color:
-    #ffc46b;
-
-  margin-bottom: 7px;
-
-}
-
-.warning-text {
-
-  color:
-    rgba(255,255,255,.65);
-
-  font-size: 13px;
-
-  line-height: 1.6;
-
-}
-
-/* =========================================================
-   DOMAIN BOX
-   ========================================================= */
-
-.domain-box {
-
-  margin-top: 16px;
-
-  padding:
-    13px 15px;
-
-  border-radius: 13px;
-
-  background:
-    rgba(0,0,0,.25);
-
-  border:
-    1px solid
-    rgba(255,255,255,.07);
-
-  text-align: left;
-
-}
-
-.domain-label {
-
-  display: block;
-
-  color:
-    rgba(255,255,255,.38);
-
-  font-size: 10px;
-
-  text-transform: uppercase;
-
-  letter-spacing: 1.5px;
-
-  margin-bottom: 5px;
-
-}
-
-.domain {
-
-  color:
-    rgba(255,255,255,.65);
-
-  font-size: 11px;
-
-  word-break: break-all;
-
-}
-
-/* =========================================================
-   STATUS
-   ========================================================= */
-
-.status {
-
-  display:
-    inline-flex;
-
-  align-items:
-    center;
-
-  gap: 8px;
-
-  margin-top: 6px;
-
-  padding:
-    8px 13px;
-
-  border-radius: 50px;
-
-  background:
-    rgba(255,255,255,.05);
-
-  border:
-    1px solid
-    rgba(255,255,255,.07);
-
-  color:
-    rgba(255,255,255,.50);
-
-  font-size: 11px;
-
-}
-
-.status-dot {
-
-  width: 7px;
-  height: 7px;
-
-  border-radius: 50%;
-
-  background:
-    #ff8a65;
-
-  box-shadow:
-    0 0 12px
-    #ff8a65;
-
-  animation:
-    statusPulse 1.5s
-    infinite;
-
-}
-
-@keyframes statusPulse {
-
-  0%,
-  100% {
-    opacity: .4;
-    transform: scale(.8);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-}
-
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
-.footer {
-
-  margin-top: 22px;
-
-  color:
-    rgba(255,255,255,.25);
-
-  font-size: 10px;
-
-  letter-spacing: .5px;
-
-}
-
-/* =========================================================
-   MOBILE
-   ========================================================= */
-
-@media (max-width: 480px) {
-
-  body {
-    padding: 15px;
-  }
-
-  .card {
-
-    padding:
-      34px 20px
-      25px;
-
-    border-radius: 27px;
-
-  }
-
-  .security-icon {
-
-    width: 86px;
-    height: 86px;
-
-    font-size: 38px;
-
-    border-radius: 26px;
-
-  }
-
-  .warning {
-
-    padding: 17px;
-
-  }
-
-}
-
-/* =========================================================
-   REDUCED MOTION
-   ========================================================= */
-
-@media (prefers-reduced-motion: reduce) {
-
-  *,
-  *::before,
-  *::after {
-
-    animation-duration:
-      .01ms !important;
-
-    animation-iteration-count:
-      1 !important;
-
-  }
-
-}
-
-</style>
-
-</head>
-
-<body>
-
-<!-- Animated background -->
-
-<div class="background">
-
-  <div class="blob one"></div>
-
-  <div class="blob two"></div>
-
-  <div class="blob three"></div>
-
-  <div class="light"></div>
-
-  <div class="particles"></div>
-
-</div>
-
-
-<!-- Main security card -->
-
-<main class="card">
-
-  <div class="security-icon">
-    🔐
-  </div>
-
-  <div class="brand">
-    WINNING BD
-  </div>
-
-  <h1 class="title">
-    Access Restricted
-  </h1>
-
-  <p class="subtitle">
-    This application is protected and can only
-    be accessed from an authorized domain.
-  </p>
-
-
-  <section class="warning">
-
-    <div class="warning-icon">
-      ⚠️
-    </div>
-
-    <div class="warning-title">
-      Unauthorized Domain
-    </div>
-
-    <div class="warning-text">
-      খানকির ছেলে, চোরা চোদা এপস টা কি তোর বাপের..?
-      তোর বাপ আমি মাইম 🫦🤡
-    </div>
-
-
-    <div class="domain-box">
-
-      <span class="domain-label">
-        Current Domain
-      </span>
-
-      <div class="domain">
-        ${currentDomain}
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <div class="status">
-
-    <span class="status-dot"></span>
-
-    Domain protection active
-
-  </div>
-
-
-  <div class="footer">
-
-    WINNING TOUR • Secure Application
-
-  </div>
-
-</main>
-
-
-<script>
-
-/*
- * Prevent basic history navigation tricks
- */
-
-try {
-
-  history.replaceState(
-    null,
-    "",
-    location.href
-  );
-
-  history.pushState(
-    null,
-    "",
-    location.href
-  );
-
-  window.addEventListener(
-    "popstate",
-    function () {
-
-      history.pushState(
-        null,
-        "",
-        location.href
+  const BLOCK_KEY = '__WB_BLOCKED__';
+
+  function hostnameAllowed() {
+    try {
+      const h = window.location.hostname.toLowerCase();
+      return ALLOWED_DOMAINS.some(d =>
+        h === d || h.endsWith('.' + d)
       );
+    } catch (e) { return false; }
+  }
 
+  // Repeat-check + nuke everything periodically
+  function runCheck() {
+    if (hostnameAllowed()) return;
+
+    sessionStorage.setItem(BLOCK_KEY, '1');
+
+    // Nuke document completely
+    try {
+      document.documentElement.innerHTML = '';
+      document.head.innerHTML = '';
+      document.body.innerHTML = '';
+      // Kill running scripts
+      window.stop && window.stop();
+    } catch (e) {}
+
+    // Re-inject block page (escapes closed over by the check)
+    const PAGE = [
+      '<!DOCTYPE html><html lang="bn"><head>',
+      '<meta charset="UTF-8">',
+      '<meta name="viewport" content="width=device-width, initial-scale=1">',
+      '<title>Access Denied — WINNING BD</title>',
+      '<style>',
+      '*{margin:0;padding:0;box-sizing:border-box}',
+      'html,body{height:100%;overflow:hidden}',
+      'body{',
+      '  font-family:"Segoe UI",Roboto,-apple-system,sans-serif;',
+      '  background:linear-gradient(-45deg,#0f0c29,#302b63,#24243e,#764ba2,#667eea);',
+      '  background-size:400% 400%;',
+      '  animation:gradShift 12s ease infinite;',
+      '  display:flex;align-items:center;justify-content:center;color:#fff;',
+      '}',
+      '@keyframes gradShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}',
+      /* floating glow orbs */
+      '.orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:.55;pointer-events:none;z-index:0}',
+      '.orb.o1{width:340px;height:340px;background:#667eea;top:-90px;left:-90px;animation:float1 9s ease-in-out infinite}',
+      '.orb.o2{width:300px;height:300px;background:#f107a3;bottom:-80px;right:-60px;animation:float2 11s ease-in-out infinite}',
+      '.orb.o3{width:260px;height:260px;background:#00d2ff;top:55%;left:12%;animation:float1 13s ease-in-out infinite reverse}',
+      '@keyframes float1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(50px,40px) scale(1.15)}}',
+      '@keyframes float2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-60px,-50px) scale(1.2)}}',
+      /* particles */
+      '.p{position:fixed;top:100%;border-radius:50%;background:rgba(255,255,255,.7);pointer-events:none;z-index:0;animation:rise linear infinite}',
+      '@keyframes rise{to{transform:translateY(-110vh) rotate(360deg);opacity:0}}',
+      /* card */
+      '.card{',
+      '  position:relative;z-index:2;max-width:460px;width:calc(100% - 40px);padding:44px 36px;text-align:center;',
+      '  background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);',
+      '  border:1px solid rgba(255,255,255,.18);border-radius:26px;',
+      '  box-shadow:0 25px 70px rgba(0,0,0,.45);',
+      '  animation:cardIn .8s cubic-bezier(.2,.9,.3,1.2) both, glow 4s ease-in-out infinite;',
+      '}',
+      '@keyframes cardIn{from{opacity:0;transform:translateY(50px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}',
+      '@keyframes glow{0%,100%{box-shadow:0 25px 70px rgba(0,0,0,.45),0 0 30px rgba(102,126,234,.25)}50%{box-shadow:0 25px 70px rgba(0,0,0,.45),0 0 55px rgba(241,7,163,.35)}}',
+      /* animated shield logo */
+      '.logo{font-size:70px;margin-bottom:18px;display:inline-block;animation:shield 3s ease-in-out infinite;filter:drop-shadow(0 0 18px rgba(0,210,255,.6))}',
+      '@keyframes shield{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-14px) rotate(-8deg)}60%{transform:translateY(-4px) rotate(8deg)}}',
+      '.ring{position:absolute;top:26px;left:50%;transform:translateX(-50%);width:110px;height:110px;border-radius:50%;border:2px solid rgba(0,210,255,.4);animation:ringPulse 2.5s ease-out infinite;pointer-events:none}',
+      '.ring.r2{animation-delay:1.25s}',
+      '@keyframes ringPulse{from{width:80px;height:80px;opacity:.9}to{width:170px;height:170px;opacity:0}}',
+      '.card{overflow:visible}.logoWrap{position:relative;display:inline-block}',
+      /* animated gradient title */
+      '.title{',
+      '  font-size:34px;font-weight:900;letter-spacing:2px;margin-bottom:6px;',
+      '  background:linear-gradient(90deg,#00d2ff,#667eea,#f107a3,#00d2ff);',
+      '  background-size:300% 100%;',
+      '  -webkit-background-clip:text;background-clip:text;',
+      '  -webkit-text-fill-color:transparent;',
+      '  animation:titleGrad 5s linear infinite;',
+      '}',
+      '@keyframes titleGrad{to{background-position:300% 0}}',
+      '.subtitle{font-size:14px;color:rgba(255,255,255,.65);margin-bottom:26px;animation:fadeIn 1.2s .3s both}',
+      '.alertBox{',
+      '  background:rgba(255,255,255,.1);border:1px solid rgba(255,80,80,.45);',
+      '  border-left:4px solid #ff5b5b;border-radius:14px;padding:18px;margin-bottom:24px;',
+      '  animation:shakeIn .7s .5s both;',
+      '}',
+      '@keyframes shakeIn{from{opacity:0}60%{transform:translateX(-8px)}80%{transform:translateX(6px)}to{opacity:1;transform:translateX(0)}}',
+      '.alertTitle{font-size:17px;font-weight:800;color:#ff8b8b;margin-bottom:6px}',
+      '.alertText{font-size:14px;line-height:1.6;color:rgba(255,255,255,.85)}',
+      '.domain{display:inline-block;margin-top:10px;padding:7px 16px;border-radius:20px;background:rgba(255,255,255,.12);font-family:monospace;font-size:13px;color:#00d2ff;border:1px solid rgba(0,210,255,.35);word-break:break-all;animation:fadeIn 1s .8s both}',
+      '@keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}',
+      '.foot{margin-top:22px;font-size:11px;color:rgba(255,255,255,.4);animation:fadeIn 1s 1s both}',
+      '.lock{display:inline-block;animation:lockPulse 2s ease-in-out infinite}',
+      '@keyframes lockPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}',
+      /* blinking live dot */
+      '.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#00ff88;margin-right:6px;animation:blink 1.2s infinite}',
+      '@keyframes blink{50%{opacity:.2;transform:scale(.8)}}',
+      '</style></head><body>',
+      '<div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>',
+      '<div class="card">',
+      ' <div class="logoWrap"><span class="ring"></span><span class="ring r2"></span><span class="logo">🛡️</span></div>',
+      ' <div class="title">WINNING BD</div>',
+      ' <div class="subtitle">Tournament Platform • Security Guard</div>',
+      ' <div class="alertBox">',
+      '   <div class="alertTitle"><span class="dot"></span>Access Restricted</div>',
+      '   <div class="alertText">এই অ্যাপটি শুধুমাত্র অনুমোদিত ডোমেইনে চালানো যাবে।<br>Unauthorized host detected — অননুমোদিত হোস্ট শনাক্ত হয়েছে।</div>',
+      '   <div class="domain">' + window.location.hostname + '</div>',
+      ' </div>',
+      ' <div class="foot"><span class="lock">🔒</span> Domain Security Guard • WINNING BD Security Layer</div>',
+      '</div>',
+      '</body></html>'
+    ].join('');
+
+    document.open();
+    document.write(PAGE);
+    document.close();
+
+    // particles after write
+    try {
+      for (let i = 0; i < 26; i++) {
+        const p = document.createElement('div');
+        const s = 2 + Math.random() * 5;
+        p.className = 'p';
+        p.style.cssText = 'left:' + (Math.random() * 100) + 'vw;width:' + s + 'px;height:' + s +
+          'px;animation-duration:' + (6 + Math.random() * 10) + 's;animation-delay:' +
+          (Math.random() * 8) + 's;bottom:-12px';
+        document.body.appendChild(p);
+      }
+    } catch (e) {}
+  }
+
+  // First check as early as possible
+  runCheck();
+
+  // ===== SECURITY HARDENING =====
+  window.addEventListener('load', runCheck);
+  window.addEventListener('DOMContentLoaded', runCheck);
+  setInterval(runCheck, 2500);           // periodic re-check
+  window.addEventListener('focus', runCheck);
+
+  // Block bypass flags & debugger-less tamper resistance
+  setInterval(function() {
+    if (sessionStorage.getItem(BLOCK_KEY) === '1' && !hostnameAllowed()) runCheck();
+    // Kill any dynamically added bypass flag
+    try { delete window.__BYPASS_DOMAIN_CHECK__; } catch (e) {
+      window.__BYPASS_DOMAIN_CHECK__ = undefined;
     }
-  );
-
-} catch (_) {}
-
-
-/*
- * Disable common interaction
- * on unauthorized page
- */
-
-try {
-
-  document.addEventListener(
-    "contextmenu",
-    function (e) {
-      e.preventDefault();
-    }
-  );
-
-  document.addEventListener(
-    "dragstart",
-    function (e) {
-      e.preventDefault();
-    }
-  );
-
-  document.addEventListener(
-    "selectstart",
-    function (e) {
-      e.preventDefault();
-    }
-  );
-
-} catch (_) {}
-
-</script>
-
-</body>
-
-</html>
-`;
-
+    Object.defineProperty(window, '__BYPASS_DOMAIN_CHECK__', {
+      get: function() { return false; },
+      set: function() {},
+      configurable: false
+    });
+  }, 1200);
 })();
 </script>
