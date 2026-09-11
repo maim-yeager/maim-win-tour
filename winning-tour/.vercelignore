@@ -1,0 +1,8 @@
+# NEVER let secrets / local env files reach Vercel's upload
+.env
+.env.*
+*.pem
+**/service-account*.json
+**/service-account*.b64
+**/*-firebase-adminsdk-*.json
+winningbd-secrets
