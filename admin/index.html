@@ -301,7 +301,23 @@ tbody tr:hover{background:#fafbfc}
   // SMALL HELPERS
   // ============================================================
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; }); }
-  function j(v) { return JSON.stringify(v == null ? '' : String(v)); }
+  // j(v) is used everywhere to embed a value as a JS string argument inside
+  // double-quoted inline event handlers, e.g. onclick="App.navigate(' + j(page) + ')".
+  // BUG (this was the actual root cause of "no button works" across the whole
+  // admin panel): JSON.stringify() wraps its output in literal double-quote
+  // characters. Embedded straight into a double-quoted HTML attribute, e.g.
+  // onclick="App.navigate("matches")", the browser's HTML parser terminates
+  // the attribute at the FIRST of those quotes — right after the opening
+  // parenthesis — leaving the actual onclick handler truncated to just
+  // "App.navigate(". Compiling that as a function body throws exactly
+  // "Uncaught SyntaxError: Unexpected end of input" the moment the button is
+  // clicked, which is silent unless something is listening for window
+  // 'error' events (nothing was, until this session). Every single onclick/
+  // oninput handler built with j(...) throughout this file hit this. Fixed
+  // by also HTML-escaping the JSON output, so the embedded quotes become
+  // &quot; (inert to the HTML parser) and decode back to real quotes only
+  // when the browser reads the attribute value to run it as JS.
+  function j(v) { return esc(JSON.stringify(v == null ? '' : String(v))); }
   function tk(n) { var x = Number(n) || 0; return '\u09F3' + x.toLocaleString(undefined, { maximumFractionDigits: 2 }); }
   function dt(t) { return t ? new Date(Number(t)).toLocaleString() : '\u2014'; }
   function num(v) { var n = Number(v); return Number.isFinite(n) ? n : 0; }
