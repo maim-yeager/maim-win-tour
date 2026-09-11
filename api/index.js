@@ -13,7 +13,7 @@ module.exports = async function handler(req, res) {
     await new Promise((resolve) => {
         if (req.body !== undefined) { req.body = typeof req.body === 'string' ? safeParse(req.body) : req.body; return resolve(); }
         let data = '';
-        req.on('data', c => { data += c; if (data.length > 1e6) { data = ''; req.destroy(); } });
+        req.on('data', c => { data += c; if (data.length > 5e6) { data = ''; req.destroy(); } });
         req.on('end', () => { req.body = safeParse(data); resolve(); });
         req.on('error', () => { req.body = {}; resolve(); });
     });

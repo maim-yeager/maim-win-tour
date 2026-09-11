@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Winning Tour</string>
+
+    <!--
+        REQUIRED — replace with your actual Web Client ID from Firebase Console:
+        Firebase Console → Project Settings → General → Your apps → Web app
+        OR: Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client IDs → Web client
+        It looks like:  123456789-abcdefghijklmnop.apps.googleusercontent.com
+    -->
+    <string name="default_web_client_id">REPLACE_WITH_YOUR_WEB_CLIENT_ID</string>
+
+    <!-- The URL of the deployed web app (index.html) -->
+    <string name="web_app_url">https://winning-tour.vercel.app/</string>
+</resources>

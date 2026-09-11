@@ -2168,7 +2168,7 @@ tbody tr:hover{background:#fafbfc}
         '<div class="switch-row"><div><div class="k">Active</div></div><label class="switch"><input type="checkbox" id="bn-active" ' + (banner.active !== false ? 'checked' : '') + '><span class="track"></span></label></div>' +
         '<div id="bn-msg" class="form-msg" style="margin-top:8px"></div>' +
       '</div>' +
-      '<div class="modal-foot"><button class="btn btn-ghost" onclick="App.closeModal()">Cancel</button><button class="btn btn-primary" onclick="App.saveBanner(' + j(idx === null ? null : idx) + ')"><i class="fa-solid fa-check"></i> Save</button></div>'
+      '<div class="modal-foot"><button class="btn btn-ghost" onclick="App.closeModal()">Cancel</button><button class="btn btn-primary" onclick="App.saveBanner(' + (idx === null ? 'null' : idx) + ')"><i class="fa-solid fa-check"></i> Save</button></div>'
     );
   }
   async function saveBanner(idx) {
@@ -2184,7 +2184,9 @@ tbody tr:hover{background:#fafbfc}
       endDate: document.getElementById('bn-end').value ? new Date(document.getElementById('bn-end').value).getTime() : 0
     };
     try {
-      if (idx !== null) await api('/admin/banners/' + idx, { method: 'PUT', body: JSON.stringify(payload) });
+      // idx is null for new banners; guard against empty-string sentinel that j() could produce
+      var isNew = (idx === null || idx === '' || idx === undefined);
+      if (!isNew) await api('/admin/banners/' + idx, { method: 'PUT', body: JSON.stringify(payload) });
       else await api('/admin/banners', { method: 'POST', body: JSON.stringify(payload) });
       toast('Banner saved.', 'ok'); closeModal(); App.refresh();
     } catch (e) { msg.textContent = e.message; msg.className = 'form-msg err'; }

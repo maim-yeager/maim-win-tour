@@ -754,7 +754,8 @@ textarea,
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 39;
+            /* 1001 keeps both FABs above the tab-bar (z-index: 1000) */
+            z-index: 1001;
             box-shadow: var(--shadow-neumorphic-sm);
             border: none;
             
@@ -769,11 +770,13 @@ textarea,
         }
 
         .fab-whatsapp {
-            bottom: 100px;
+            /* tab-bar occupies bottom 15px–90px; place whatsapp above telegram */
+            bottom: 170px;
         }
 
         .fab-telegram {
-            bottom: 35px;
+            /* Just above tab-bar top edge (90px); 10px breathing room */
+            bottom: 100px;
             transition-delay: 0.05s, 0.05s, 0.08s;
         }
 
@@ -3187,7 +3190,7 @@ textarea,
     // =====================================================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, set, onValue, push, update, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile as firebaseUpdateProfile, GoogleAuthProvider, signInWithRedirect, signInWithPopup, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile as firebaseUpdateProfile, GoogleAuthProvider, signInWithRedirect, signInWithPopup, getRedirectResult, signInWithCredential } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCQd3OwkuOtMTnQq4sLijvFm1b1MO813TI",
@@ -4917,6 +4920,34 @@ setTimeout(() => {
     // interaction). Popup is now tried first; if it's genuinely blocked
     // (e.g., this page really is embedded in a restrictive in-app webview),
     // it falls back to signInWithRedirect automatically.
+    // Detect Android WebView: Chrome adds " wv" to the UA when running inside a WebView,
+    // and web-to-APK wrappers typically don't ship their own browser engine.
+    // Google deliberately blocks OAuth flows in plain WebViews ("disallowed_useragent"),
+    // so we route around the popup/redirect path when possible.
+    var _isAndroidWebView = (function() {
+        var ua = navigator.userAgent || '';
+        return /Android/.test(ua) && (/; wv\)/.test(ua) || /WebView/.test(ua));
+    })();
+
+    // Native bridge callback — called by the Android app after a successful Google Sign-In.
+    // The app passes the Google ID token; we exchange it for a Firebase credential here.
+    // Bridge method name agreed on both sides: window.WinApp.startGoogleSignIn() (Java → JS)
+    window.onNativeGoogleSignIn = async function(idToken) {
+        try {
+            var credential = GoogleAuthProvider.credential(idToken);
+            var result = await signInWithCredential(auth, credential);
+            if (result && result.user) await finishGoogleSignIn(result.user);
+        } catch (e) {
+            console.error('Native Google bridge sign-in error:', e);
+            showToast('Google sign-in failed (' + (e.code || e.message) + '). Please try again.', 'error');
+        }
+    };
+
+    // Error callback from the native bridge (token fetch failed on Java side).
+    window.onNativeGoogleSignInError = function(errorMsg) {
+        showToast(errorMsg || 'Google sign-in was cancelled or failed. Please try again.', 'error');
+    };
+
     let googleSignInInFlight = false;
 
     async function finishGoogleSignIn(user) {
@@ -4957,17 +4988,60 @@ setTimeout(() => {
         googleSignInInFlight = true;
         const btn = document.getElementById('google-signin-btn');
         if (btn) btn.disabled = true;
+
+        // ── Native Android bridge path ───────────────────────────────────────────
+        // If the native WebView wrapper exposes window.WinApp.startGoogleSignIn(),
+        // delegate to it entirely. The Java side will call window.onNativeGoogleSignIn(idToken)
+        // on success, or window.onNativeGoogleSignInError(msg) on failure.
+        // Result arrives asynchronously; we re-enable the button immediately here.
+        if (window.WinApp && typeof window.WinApp.startGoogleSignIn === 'function') {
+            try { window.WinApp.startGoogleSignIn(); } catch (e) {
+                showToast('Google sign-in not available. Please update the app.', 'error');
+            }
+            googleSignInInFlight = false;
+            if (btn) btn.disabled = false;
+            return;
+        }
+
         const provider = new GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
+
+        // ── Android WebView (no native bridge) ──────────────────────────────────
+        // Plain WebViews don't support popup and Google blocks OAuth redirect
+        // ("disallowed_useragent"). Go straight to signInWithRedirect so the
+        // browser/custom tab can open outside the WebView context.
+        if (_isAndroidWebView) {
+            try {
+                sessionStorage.setItem('gsi_pending', '1');
+                await signInWithRedirect(auth, provider);
+                return; // navigating away
+            } catch (redirectError) {
+                sessionStorage.removeItem('gsi_pending');
+                console.error('Google sign-in (WebView redirect) error:', redirectError);
+                const msg = googleSignInErrorMessage(redirectError);
+                if (msg) showToast(msg, 'error');
+                googleSignInInFlight = false;
+                if (btn) btn.disabled = false;
+            }
+            return;
+        }
+
+        // ── Normal browser path ─────────────────────────────────────────────────
         try {
-            // Try the popup first — no page navigation, no state to lose.
+            // Popup first — no page navigation, no state to lose.
             const result = await signInWithPopup(auth, provider);
             if (result && result.user) await finishGoogleSignIn(result.user);
         } catch (error) {
             console.error('Google sign-in (popup) error:', error);
-            const popupBlockedCodes = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/web-storage-unsupported'];
+            // Expand the blocked-codes list to catch additional WebView / browser variants.
+            const popupBlockedCodes = [
+                'auth/popup-blocked',
+                'auth/operation-not-supported-in-this-environment',
+                'auth/web-storage-unsupported',
+                'auth/internal-error'
+            ];
             if (popupBlockedCodes.includes(error.code)) {
-                // Genuinely can't use a popup here — fall back to full-page redirect.
+                // Fall back to full-page redirect.
                 try {
                     sessionStorage.setItem('gsi_pending', '1');
                     await signInWithRedirect(auth, provider);
