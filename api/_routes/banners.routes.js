@@ -16,7 +16,7 @@ async function readBanners() {
 
 function cleanBanner(b, idx) {
     return {
-        img: asString(b.img, 1000),
+        img: asString(b.img, 300000),
         link: asString(b.link, 1000),
         title: asString(b.title, 200),
         active: asBool(b.active),

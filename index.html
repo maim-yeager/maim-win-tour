@@ -4,13 +4,13 @@
     <script src="/domain-check.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>WINNING BD</title>
+    <title>Winning Tour</title>
     
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Google Fonts: Lato + Hind Siliguri (Bengali Support) -->
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Lato + Hind Siliguri (Bengali Support) + Great Vibes (calligraphy brand font) -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&family=Hind+Siliguri:wght@300;400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
     
     <style>
         /* =====================================================
@@ -359,10 +359,19 @@ textarea,
 
         /* ===== HOME PAGE LEFT SIDE APPS NAME ANIMATED ===== */
        
+.app-title-logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: var(--shadow-neumorphic-sm, 0 2px 6px rgba(0,0,0,0.15));
+    flex-shrink: 0;
+}
 .animated-app-title {
-    font-size: 1.8rem;
-    font-weight: 900;
-    letter-spacing: 2px;
+    font-family: 'Great Vibes', cursive;
+    font-size: 2.3rem;
+    font-weight: 400;
+    letter-spacing: 1px;
     display: inline-block;
     margin-left: 10px;
     
@@ -493,8 +502,9 @@ textarea,
     box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Logo-র জন্য হালকা shadow (optional) */
 }
 .splash-title {
-    font-size: 1.8rem;
-    font-weight: 900;
+    font-family: 'Great Vibes', cursive;
+    font-size: 2.6rem;
+    font-weight: 400;
     margin-top: 25px;
     background: linear-gradient(90deg, 
         #ff0000, #ff7f00, #ffff00, #00ff00, 
@@ -767,9 +777,12 @@ textarea,
             transition-delay: 0.05s, 0.05s, 0.08s;
         }
 
-        /* VISIBLE STATE - when home section active */
-        #home-view.show-fab .fab-whatsapp,
-        #home-view.show-fab .fab-telegram {
+        /* VISIBLE STATE - toggled directly on the buttons (they are
+           position:fixed and live outside #tab-home-view in the markup, so a
+           descendant selector like "#tab-home-view.show-fab .fab-whatsapp"
+           can never match them — that was the original bug). */
+        .fab-whatsapp.show,
+        .fab-telegram.show {
             opacity: 1;
             visibility: visible;
             pointer-events: auto;
@@ -784,14 +797,6 @@ textarea,
         .fab-whatsapp:active, .fab-telegram:active {
             transform: translateX(0) scale(0.95);
             box-shadow: var(--shadow-neumorphic-inset-sm);
-        }
-
-        /* Auto-hide animation */
-        .fab-whatsapp.hiding,
-        .fab-telegram.hiding {
-            opacity: 0;
-            visibility: hidden;
-            transform: translateX(120px) scale(0.5);
         }
 
         .fab-whatsapp i {
@@ -1281,6 +1286,15 @@ textarea,
         .wallet-text {
             font-weight: 600;
             opacity: 0.9;
+        }
+        .brand-calligraphy-inline {
+            font-family: 'Great Vibes', cursive;
+            font-size: 1.4rem;
+            font-weight: 400;
+            vertical-align: middle;
+        }
+        .brand-calligraphy-inline .wallet-text {
+            font-family: 'Lato', sans-serif;
         }
         .wallet-balance-section {
             margin: var(--space-xl) 0;
@@ -2379,7 +2393,7 @@ textarea,
 <div id="maintenance-overlay" class="maintenance-overlay">
     <div class="maintenance-box">
         <i class="fas fa-tools"></i>
-        <h2>WINNING BD</h2>
+        <h2 style="font-family:'Great Vibes',cursive;font-size:2.2rem;font-weight:400;">Winning Tour</h2>
         <p>We are currently performing scheduled maintenance. Please try again later.</p>
         <button class="primary-btn" onclick="dismissMaintenanceOverlay()" style="margin-top: 25px;">ব্যাক টু হোম</button>
     </div>
@@ -2389,9 +2403,9 @@ textarea,
      Note: Dev Maim moved down and RGB removed as requested -->
 <div id="splash-screen">
     <div class="splash-logo-wrapper">
-        <img src="https://i.ibb.co.com/whcG0rC6/1770787659213-8d48fc16-a270-4efc-bbcd-e737bcbcd6c6.png" alt="WINNING BD Logo" class="splash-logo" id="splash-logo-img">
+        <img src="https://i.ibb.co.com/whcG0rC6/1770787659213-8d48fc16-a270-4efc-bbcd-e737bcbcd6c6.png" alt="Winning Tour Logo" class="splash-logo" id="splash-logo-img">
     </div>
-    <h1 class="splash-title">WINNING TOUR</h1>
+    <h1 class="splash-title">Winning Tour</h1>
     <p class="splash-version">3.0</p>
     <!-- Dev Maim - moved down with margin-top: 80px and RGB removed (flat color) -->
     <div class="splash-dev">Devloper Maim</div>
@@ -2414,7 +2428,8 @@ textarea,
     <!-- ========== HOME SECTION ========== -->
     <section id="tab-home-view" class="app-section">
         <div class="app-title-container">
-            <span class="animated-app-title">⚡WINNING  TOUR</span>
+            <img src="https://i.ibb.co.com/whcG0rC6/1770787659213-8d48fc16-a270-4efc-bbcd-e737bcbcd6c6.png" alt="Winning Tour" class="app-title-logo">
+            <span class="animated-app-title">Winning Tour</span>
         </div>
         <div class="hero-banner">
             <div class="slider-container">
@@ -2428,7 +2443,7 @@ textarea,
             <div class="marquee-container">
                 <i class="fas fa-bullhorn marquee-icon"></i>
                 <div class="marquee-wrapper">
-                    <span id="dynamic-notice" class="marquee-content">Welcome to WINNING BD - Bangladesh's Largest Tournament Platform</span>
+                    <span id="dynamic-notice" class="marquee-content">Welcome to Winning Tour - Bangladesh's Largest Tournament Platform</span>
                 </div>
             </div>
             
@@ -2526,7 +2541,7 @@ textarea,
             </div>
             
             <div style="text-align: center; margin-top: 30px; color: var(--text-light); font-size: 0.8rem; font-weight: 600; padding: 20px; background: var(--bg-primary); border-radius: var(--radius-lg); box-shadow: var(--shadow-neumorphic-inset-sm);">
-                App Version 3.0 | WINNING BD
+                App Version 3.0 | Winning Tour
             </div>
         </div>
     </section>
@@ -2566,7 +2581,7 @@ textarea,
         <div class="khelo-wallet-card">
             <div class="wallet-card-header">
                 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAACqElEQVR4nO2Zu0sVURjHv79N6x8IYlqIlRZvQguCoLK0CKKoCEp7G4miLbZpEVQ0tmkUERSTLMLKEBFRIaTSRd8Uu/d+5nF2Zmd2vjvzZu4DB+6de85vz5y53z1rVatWLzQCHYAF4BwwBnQCi8AY0Ak8AiPAE9APfAEew+YAk9YCi8AR8BlYAb5ZAGwCDcA+MAsstgCPgZfAZ6B+AjaB/cBRIOAc6ALnwCtwAgyB2sYEmAQeAHfAVmD/LbgvA5OBc+A+MLfA5gE/gTvgGfgNeAP2gMvA5mUBA8AwcAIYB84DPQBWYA14DNwAehTF7Q3cBu7X/B1gBfgbGE/sS4CZwEnsL74B7gCzQGfxkQIXgWfAsDqFwJbgC3ALrABbQJVFwI4yrx+F3QE2gddgf849wI7kPquA7cC6Ym8g0wKLAI+A3cBOYJ/ZdwE0gCvgOvAXqA0mge2l2hgwA3wCigS8vYBVYJLZv59BwDjwDPgJzM3gfLYWvAF3wAFQBHQAPcAwEAvgKaAHuAr8AhOBc+AyMLvY3gEuwO6c/V8K3gA7gSXgGfAAnAc6gKPAI/AF2AUuAo+Br4G/wBvgNfAWeA98B74HXgNfAa+A14DXwNvgffAV8Bp4DbwG3gNvgU/AafApuA0+BXfBp+A2+BTcBZ+B2+BTcBcMAWfAZ2AwM/5/AZOBs2BNs4/ATGCn5yvgE/AncAT8BT4CH4GvQJvLwL1gX7P+TgC7G/s+AvcB4/K6R/91LgIfgT7l/B3o09x/DvwB7AAnVwJ/gUvAN3C+FpgEDgPfVwBvAJeAJzUf007Af2nQpA1wBfgDLBcN3vUNeAQsLho8L0+BNcXC5w1fAS8AXgZeAN8f658L/GvB8/sL+AJYAI7/AXAAdAC3lq1a/Q+oR/l5fP/1bQAAAABJRU5ErkJggg==" alt="Card">
-                <span>WINNING BD <span class="wallet-text">WALLET</span></span>
+                <span class="brand-calligraphy-inline">Winning Tour <span class="wallet-text">WALLET</span></span>
             </div>
             <div class="wallet-balance-section">
                 <div class="balance-label">Available Balance</div>
@@ -3379,6 +3394,7 @@ textarea,
                 document.querySelectorAll('.tab-item').forEach((el, idx) => {
                     el.classList.toggle('active', idx === 0);
                 });
+                if (!homeTrapSeeded && typeof trapHomeHistory === 'function') { homeTrapSeeded = true; trapHomeHistory(); }
             } else if (section === 'matches') {
                 document.getElementById('tab-mymatches-view').classList.add('active');
                 document.querySelectorAll('.tab-item').forEach((el, idx) => {
@@ -3405,6 +3421,8 @@ textarea,
             updateURL(section, subPage);
         }
         lastActiveSection = section;
+        if (section !== 'home' && typeof homeBackArmed !== 'undefined') homeBackArmed = false;
+        if (typeof updateFABVisibility === 'function') updateFABVisibility();
     }
 
     // Navigate back (used by back button and hardware back)
@@ -3438,9 +3456,43 @@ textarea,
         return page || 'home';
     }
 
+    // ========== DOUBLE-BACK-TO-EXIT (Home screen) ==========
+    // In a WebView-wrapped app, the hardware back button normally calls the
+    // WebView's built-in goBack(), which fires this same 'popstate' event —
+    // but if there's no browser history left to go back to, goBack() does
+    // nothing and the wrapper typically just closes the app immediately on
+    // the very first press. "trapHomeHistory" keeps one extra dummy history
+    // entry underneath the Home screen at all times, so there is always
+    // something to go "back" to, guaranteeing this handler runs instead of
+    // the app silently closing.
+    let homeBackArmed = false;
+    let homeBackArmedTimer = null;
+    function trapHomeHistory() {
+        try { window.history.pushState({ __exitTrap: true, section: 'home' }, '', window.location.href); } catch (e) {}
+    }
+    let homeTrapSeeded = false;
+
     // Handle browser back/forward
     window.addEventListener('popstate', (event) => {
         if (ignorePopState) return;
+
+        // ROOT CASE: sitting on Home with nothing left in the in-app
+        // navigation stack — this is the "exit" gesture, not a normal
+        // back-navigation. Require a second press before actually exiting.
+        if (lastActiveSection === 'home' && navHistory.length <= 1 && !document.body.classList.contains('sub-page')) {
+            trapHomeHistory(); // stay put — re-arm the trap for next time
+            if (homeBackArmed) {
+                homeBackArmed = false;
+                clearTimeout(homeBackArmedTimer);
+                showExitModal();
+            } else {
+                homeBackArmed = true;
+                if (typeof showToast === 'function') showToast('আবার ব্যাক বাটনে চাপুন অ্যাপ থেকে বের হতে', 'info');
+                homeBackArmedTimer = setTimeout(() => { homeBackArmed = false; }, 2000);
+            }
+            return;
+        }
+
         const page = getPageFromURL();
         // Determine if it's a sub page or main
         const subViews = ['wallet', 'add-money', 'withdraw', 'history', 'notifications', 'leaderboard', 'refer', 'edit-profile', 'developer-profile'];
@@ -3451,7 +3503,7 @@ textarea,
         }
     });
 
-    // Android hardware back (and browser back) - handled by popstate
+    // Android hardware back (and browser back) - handled by popstate above
 
     // ========== EXIT CONFIRMATION MODAL ==========
     function showExitModal() {
@@ -3461,14 +3513,14 @@ textarea,
         document.getElementById('exit-modal').classList.remove('active');
     };
     window.exitAppConfirmed = function() {
-        // Try to close the tab or go to home
-        if (navigator.app && navigator.app.exitApp) {
-            navigator.app.exitApp(); // For Cordova/WebView
-        } else {
-            window.close(); // May not work in all browsers
-            // Fallback: go to blank page
-            window.location.href = 'about:blank';
-        }
+        // Try every bridge a WebView wrapper commonly exposes for "close the
+        // app", in order, before falling back to a plain browser tab close.
+        try { if (navigator.app && navigator.app.exitApp) { navigator.app.exitApp(); return; } } catch (e) {}
+        try { if (window.Android && typeof window.Android.exitApp === 'function') { window.Android.exitApp(); return; } } catch (e) {}
+        try { if (window.AndroidBridge && typeof window.AndroidBridge.exitApp === 'function') { window.AndroidBridge.exitApp(); return; } } catch (e) {}
+        window.close(); // May not work in all browsers
+        // Fallback: go to blank page
+        window.location.href = 'about:blank';
     };
 
     // Override showSection to use navigateTo
@@ -3545,10 +3597,10 @@ textarea,
 
     window.shareReferral = function() {
         const code = document.getElementById('refer-code-display').innerText;
-        const text = `WINNING BD এ জয়েন করুন! আমার রেফারেল কোড: ${code}\nডাউনলোড লিংক: https://winningbd.app/download`;
+        const text = `Winning Tour এ জয়েন করুন! আমার রেফারেল কোড: ${code}\nডাউনলোড লিংক: https://winningbd.app/download`;
         if (navigator.share) {
             navigator.share({ 
-                title: 'WINNING BD', 
+                title: 'Winning Tour', 
                 text: text,
                 url: 'https://winningbd.app/download'
             }).catch(() => {
@@ -3818,14 +3870,21 @@ textarea,
 
     // ========== SPLASH SCREEN CONTROLLER ==========
     window.onload = function() {
-        // স্প্ল্যাশ স্ক্রিন 3.5 সেকেন্ড দেখাবে
+        // Normally the splash screen stays up for 3.5s. But if we're only
+        // here because the page just reloaded after a Google sign-in
+        // redirect (see signInWithGoogle below), the user already waited
+        // through Google's account picker — replaying the full splash on
+        // top of that made a working sign-in feel like it had silently
+        // failed. Skip most of the wait in that one case.
+        const returningFromGoogleRedirect = sessionStorage.getItem('gsi_pending') === '1';
+        const splashDelay = returningFromGoogleRedirect ? 300 : 3500;
         setTimeout(() => {
             document.getElementById('splash-screen').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('splash-screen').style.display = 'none';
                 splashFinished = true;  // this triggers the auth state handler
             }, 500);
-        }, 3500);
+        }, splashDelay);
     };
 
     // ========== AUTO REDIRECT - FIXED: SPLASH ALWAYS FIRST, THEN HOME OR LOGIN ==========
@@ -4839,11 +4898,25 @@ setTimeout(() => {
     // global is ever loaded on this page, so that threw a ReferenceError the
     // instant the button was tapped (silently, since it's caught below) and
     // the Google account picker never had a chance to open.
-    // Separately, `signInWithPopup` is unreliable on mobile: many mobile
-    // browsers block the popup outright, and in-app webviews (Facebook/
-    // Messenger/Instagram browser, common on Android) refuse to render
-    // Google's sign-in page inside a popup at all. `signInWithRedirect` avoids
-    // both problems by navigating the whole page instead of opening a popup.
+    //
+    // A later pass switched to signInWithRedirect() to dodge popup-blocking in
+    // in-app webviews (Facebook/Instagram in-app browser, etc). But in a
+    // normal mobile browser that isn't actually necessary, and redirect mode
+    // has its own failure mode confirmed in testing: the user picks an
+    // account, taps Continue, the full-page round trip to Google and back
+    // happens... and then nothing — no user, no error, no toast. That matches
+    // Firebase's redirect-result state (kept in the browser's own storage,
+    // separate from anything this page controls) not surviving the round
+    // trip on some mobile Chrome configurations — a known rough edge of
+    // signInWithRedirect that has nothing to do with a bug in this file.
+    //
+    // signInWithPopup() sidesteps that class of problem entirely: it never
+    // navigates the page away, so there's no state to lose across a reload,
+    // and popups opened synchronously from a real tap are not blocked by
+    // Chrome's popup blocker (which only blocks popups NOT triggered by user
+    // interaction). Popup is now tried first; if it's genuinely blocked
+    // (e.g., this page really is embedded in a restrictive in-app webview),
+    // it falls back to signInWithRedirect automatically.
     let googleSignInInFlight = false;
 
     async function finishGoogleSignIn(user) {
@@ -4869,44 +4942,75 @@ setTimeout(() => {
         setTimeout(() => { document.getElementById('auth-container').style.visibility = 'hidden'; }, 500);
     }
 
+    function googleSignInErrorMessage(error) {
+        const code = error && error.code;
+        if (code === 'auth/unauthorized-domain') return 'This domain is not authorized for Google sign-in in Firebase settings.';
+        if (code === 'auth/operation-not-allowed') return 'Google sign-in is not enabled for this app yet.';
+        if (code === 'auth/account-exists-with-different-credential') return 'An account already exists with this email using a different sign-in method.';
+        if (code === 'auth/network-request-failed') return 'Network error during Google sign-in. Please check your connection and try again.';
+        if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return null; // user closed it themselves, no need to alarm them
+        return 'Google sign-in failed' + (code ? ' (' + code + ')' : '') + '. Please try again.';
+    }
+
     window.signInWithGoogle = async function() {
         if (googleSignInInFlight) return;
         googleSignInInFlight = true;
         const btn = document.getElementById('google-signin-btn');
         if (btn) btn.disabled = true;
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
         try {
-            const provider = new GoogleAuthProvider();
-            provider.setCustomParameters({ prompt: 'select_account' });
-            await signInWithRedirect(auth, provider);
-            // Execution stops here on success — the page navigates to Google
-            // and back. The signed-in user is picked up by getRedirectResult()
-            // below when this page reloads.
+            // Try the popup first — no page navigation, no state to lose.
+            const result = await signInWithPopup(auth, provider);
+            if (result && result.user) await finishGoogleSignIn(result.user);
         } catch (error) {
-            console.error('Google sign-in error:', error);
-            let message = 'Google sign-in failed. Please try again.';
-            if (error.code === 'auth/unauthorized-domain') message = 'This domain is not authorized for Google sign-in in Firebase settings.';
-            else if (error.code === 'auth/operation-not-allowed') message = 'Google sign-in is not enabled for this app yet.';
-            showToast(message, 'error');
+            console.error('Google sign-in (popup) error:', error);
+            const popupBlockedCodes = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/web-storage-unsupported'];
+            if (popupBlockedCodes.includes(error.code)) {
+                // Genuinely can't use a popup here — fall back to full-page redirect.
+                try {
+                    sessionStorage.setItem('gsi_pending', '1');
+                    await signInWithRedirect(auth, provider);
+                    return; // page is navigating away now
+                } catch (redirectError) {
+                    sessionStorage.removeItem('gsi_pending');
+                    console.error('Google sign-in (redirect fallback) error:', redirectError);
+                    const msg = googleSignInErrorMessage(redirectError);
+                    if (msg) showToast(msg, 'error');
+                }
+            } else {
+                const msg = googleSignInErrorMessage(error);
+                if (msg) showToast(msg, 'error');
+            }
         } finally {
             googleSignInInFlight = false;
             if (btn) btn.disabled = false;
         }
     };
 
-    // Runs once on every page load; resolves with a user only right after
-    // returning from the Google redirect flow above (otherwise resolves null).
+    // Runs once on every page load. Resolves with a user only if the popup
+    // path above had to fall back to signInWithRedirect and the page has now
+    // reloaded after coming back from Google (otherwise resolves null, which
+    // is the normal case for everyone using the popup path and is expected).
     getRedirectResult(auth).then((result) => {
+        const wasPending = sessionStorage.getItem('gsi_pending') === '1';
+        sessionStorage.removeItem('gsi_pending');
         if (result && result.user) {
             return finishGoogleSignIn(result.user);
         }
+        if (wasPending && !auth.currentUser) {
+            setTimeout(() => {
+                if (!auth.currentUser) {
+                    showToast('Google sign-in did not complete after returning from Google. Please try again — if it keeps happening, try the "Sign in with Google" button again from a fresh page load.', 'error');
+                }
+            }, 1500);
+        }
     }).catch((error) => {
+        sessionStorage.removeItem('gsi_pending');
         console.error('Google redirect sign-in error:', error);
         if (error && error.code && error.code !== 'auth/no-auth-event') {
-            let message = 'Google sign-in failed. Please try again.';
-            if (error.code === 'auth/account-exists-with-different-credential') {
-                message = 'An account already exists with this email using a different sign-in method.';
-            }
-            showToast(message, 'error');
+            const msg = googleSignInErrorMessage(error);
+            if (msg) showToast(msg, 'error');
         }
     });
 
@@ -5003,33 +5107,32 @@ setTimeout(() => {
     };
 
     // ========== FAB VISIBILITY ==========
-    // Previously these buttons were hidden by default and only appeared after
-    // a double-tap on an empty part of the home screen, then auto-hid again
-    // after 4 seconds (see FAB_DOUBLE_TAP_DOCUMENTATION.md). That made them
-    // effectively invisible in normal use. Changed to the standard pattern:
-    // visible whenever the Home tab is open, hidden on every other page.
+    // Bug: this used to look up document.getElementById('home-view'), but the
+    // home section's real id is "tab-home-view" — that lookup always returned
+    // null, so both functions below bailed out immediately and the WhatsApp/
+    // Telegram buttons never appeared. Also fixed: the CSS previously required
+    // the buttons to be descendants of the home section to become visible, but
+    // they're position:fixed elements placed outside it in the markup, so that
+    // could never match either. Now the buttons' own "show" class drives
+    // visibility directly (see CSS), regardless of where they sit in the DOM.
     window.showFABButtons = function() {
-        const homeSection = document.getElementById('home-view');
         const whatsappBtn = document.querySelector('.fab-whatsapp');
         const telegramBtn = document.querySelector('.fab-telegram');
-        if (!homeSection || !whatsappBtn || !telegramBtn) return;
-        whatsappBtn.classList.remove('hiding');
-        telegramBtn.classList.remove('hiding');
-        homeSection.classList.add('show-fab');
+        if (!whatsappBtn || !telegramBtn) return;
+        whatsappBtn.classList.add('show');
+        telegramBtn.classList.add('show');
     };
 
     window.hideFABButtons = function() {
-        const homeSection = document.getElementById('home-view');
         const whatsappBtn = document.querySelector('.fab-whatsapp');
         const telegramBtn = document.querySelector('.fab-telegram');
-        if (!homeSection || !whatsappBtn || !telegramBtn) return;
-        whatsappBtn.classList.add('hiding');
-        telegramBtn.classList.add('hiding');
-        homeSection.classList.remove('show-fab');
+        if (!whatsappBtn || !telegramBtn) return;
+        whatsappBtn.classList.remove('show');
+        telegramBtn.classList.remove('show');
     };
 
     function updateFABVisibility() {
-        const homeSection = document.getElementById('home-view');
+        const homeSection = document.getElementById('tab-home-view');
         if (homeSection && homeSection.classList.contains('active')) {
             showFABButtons();
         } else {
@@ -5043,19 +5146,11 @@ setTimeout(() => {
     });
 
     // Hook navigation so FAB shows on Home and hides everywhere else
-    const origNavTo = window.navigateTo;
-    window.navigateTo = function(page, data, isInitial) {
-        const result = origNavTo.apply(this, arguments);
-        updateFABVisibility();
-        return result;
-    };
-
-    const origNavBack = window.navigateBack;
-    window.navigateBack = function(fallback) {
-        const result = origNavBack.apply(this, arguments);
-        updateFABVisibility();
-        return result;
-    };
+    // (FAB visibility is now updated directly inside navigateTo() itself,
+    // above, so it stays correct however navigation happens — tab bar,
+    // back button, deep link, etc. — instead of depending on wrapping
+    // window.navigateTo/navigateBack, which a later reassignment here used
+    // to silently discard.)
 
     // ========== EXPOSE FUNCTIONS GLOBALLY ==========
     window.navigateTo = navigateTo;

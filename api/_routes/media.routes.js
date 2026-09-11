@@ -29,9 +29,14 @@ route('POST', '/admin/media', async (req, res) => {
         const admin = await authenticateAdmin(req);
         requirePerm(admin, 'settings.manage');
         const b = body(req);
-        const url = asString(b.url, 1000).trim();
+        // asString caps length at 1000, but uploaded (base64 data: URL) images
+        // need far more room than a normal http(s) link — raise the cap only
+        // for that case so "Upload from gallery" doesn't get silently truncated.
+        const rawUrl = typeof b.url === 'string' ? b.url.trim() : '';
+        const isDataUrl = /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(rawUrl);
+        const url = isDataUrl ? asString(rawUrl, 8000000).trim() : asString(rawUrl, 1000).trim();
         const label = asString(b.label, 200).trim() || 'Image';
-        if (!/^https?:\/\//i.test(url)) throw fail(400, 'INVALID_URL', 'A valid image URL is required.');
+        if (!isDataUrl && !/^https?:\/\//i.test(url)) throw fail(400, 'INVALID_URL', 'A valid image URL is required.');
 
         const key = db().ref('media_gallery').push().key;
         const item = { url, label, uploadedAt: Date.now(), uploadedBy: admin.id };

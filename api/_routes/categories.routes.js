@@ -19,10 +19,10 @@ function cleanCategory(b) {
     return {
         name: asString(b.name, 120) || null,
         code: asString(b.code, 60).toLowerCase().replace(/[^a-z0-9_]/g, '_') || null,
-        img: asString(b.img, 1000) || null,          // banner (backward compatible)
-        bannerUrl: asString(b.bannerUrl || b.img, 1000) || null,
-        icon: asString(b.icon, 1000) || null,
-        iconUrl: asString(b.iconUrl || b.icon, 1000) || null,
+        img: asString(b.img, 300000) || null,          // banner (backward compatible)
+        bannerUrl: asString(b.bannerUrl || b.img, 300000) || null,
+        icon: asString(b.icon, 300000) || null,
+        iconUrl: asString(b.iconUrl || b.icon, 300000) || null,
         description: asString(b.description, 2000),
         displayOrder: asInt(b.displayOrder, 0),
         featured: asBool(b.featured),

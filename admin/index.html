@@ -5,10 +5,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="robots" content="noindex, nofollow">
-<title>WINNING BD — Admin Panel</title>
+<title>Winning Tour — Admin Panel</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Great+Vibes&display=swap" rel="stylesheet">
+<style>.brand-calligraphy{font-family:'Great Vibes',cursive;font-weight:400;letter-spacing:.5px;}</style>
 <style>
 :root{
   --sidebar:#0f172a; --sidebar-2:#0b1220; --sidebar-text:#94a3b8; --sidebar-active:#f8fafc;
@@ -225,7 +226,7 @@ tbody tr:hover{background:#fafbfc}
     <div class="login-logo">
       <div class="logo-badge"><i class="fa-solid fa-shield-halved"></i></div>
       <div>
-        <h1>WINNING BD</h1>
+        <h1 class="brand-calligraphy" style="font-size:32px">Winning Tour</h1>
         <p>Admin Panel</p>
       </div>
     </div>
@@ -329,6 +330,84 @@ tbody tr:hover{background:#fafbfc}
     setTimeout(function () { el.style.transition = 'opacity .3s'; el.style.opacity = '0'; setTimeout(function () { el.remove(); }, 320); }, 3400);
   }
   function empty(text) { return '<div class="empty"><i class="fa-solid fa-inbox"></i><p>' + esc(text) + '</p></div>'; }
+
+  // ============================================================
+  // IMAGE FIELD + GALLERY UPLOAD
+  // Every place that used to be a plain "paste an image URL" text box now
+  // also gets an "Upload from Gallery" button. Picking a file reads it on
+  // the device, downsizes it in a <canvas> (so huge phone-camera photos
+  // don't bloat the database) and writes the result back into the same
+  // text field as a data: URL — no server-side storage needed.
+  // ============================================================
+  function imgField(id, label, value, opts) {
+    opts = opts || {};
+    var cls = 'field' + (opts.full ? ' full' : '');
+    var reqStar = opts.required ? ' *' : '';
+    var ph = opts.placeholder || 'https://\u2026';
+    return '<div class="' + cls + '"><label>' + esc(label) + reqStar + '</label>' +
+      '<div style="display:flex;gap:6px;align-items:stretch">' +
+        '<input class="input" id="' + id + '" style="flex:1;min-width:0" value="' + esc(value || '') + '" placeholder="' + esc(ph) + '" oninput="App.previewImg(' + j(id) + ')">' +
+        '<button type="button" class="btn btn-ghost btn-sm" style="white-space:nowrap" title="Upload from gallery" onclick="App.pickImage(' + j(id) + ')"><i class="fa-solid fa-images"></i> Upload</button>' +
+      '</div>' +
+      '<img id="' + id + '-prev" src="' + esc(value || '') + '" style="' + (value ? '' : 'display:none;') + 'max-height:70px;border-radius:8px;margin-top:6px;object-fit:cover" onerror="this.style.display=\'none\'">' +
+    '</div>';
+  }
+  var _pickImageTarget = null;
+  function ensureImagePicker() {
+    var input = document.getElementById('hidden-img-picker');
+    if (!input) {
+      input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.id = 'hidden-img-picker';
+      input.style.display = 'none';
+      document.body.appendChild(input);
+      input.addEventListener('change', handlePickedImage);
+    }
+    return input;
+  }
+  function pickImage(targetId) {
+    _pickImageTarget = targetId;
+    var input = ensureImagePicker();
+    input.value = '';
+    input.click();
+  }
+  function handlePickedImage(e) {
+    var file = e.target.files && e.target.files[0];
+    var targetId = _pickImageTarget;
+    if (!file || !targetId) return;
+    if (!file.type || file.type.indexOf('image/') !== 0) { toast('Please choose an image file.', 'err'); return; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var maxDim = 1000, w = img.width, h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+          else { w = Math.round(w * maxDim / h); h = maxDim; }
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        var dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+        var el = document.getElementById(targetId);
+        if (el) { el.value = dataUrl; el.dispatchEvent(new Event('input')); }
+        previewImg(targetId);
+        toast('Image ready \u2014 remember to Save.', 'ok');
+      };
+      img.onerror = function () { toast('Could not read that image.', 'err'); };
+      img.src = reader.result;
+    };
+    reader.onerror = function () { toast('Could not read that file.', 'err'); };
+    reader.readAsDataURL(file);
+  }
+  function previewImg(id) {
+    var input = document.getElementById(id);
+    var prev = document.getElementById(id + '-prev');
+    if (!input || !prev) return;
+    if (input.value) { prev.src = input.value; prev.style.display = ''; }
+    else { prev.style.display = 'none'; }
+  }
   function skeletonRows(n) {
     var s = '<div class="table-wrap"><table><thead><tr>' + Array(n).join('<th style="width:14%"><div class="skeleton" style="height:12px"></div></th>') + '</tr></thead></table></div>';
     return s;
@@ -516,7 +595,7 @@ tbody tr:hover{background:#fafbfc}
     var html = '';
     html += '<div class="sidebar-head">' +
       '<div class="logo-badge"><i class="fa-solid fa-shield-halved"></i></div>' +
-      '<div><div class="brand-name">WINNING BD</div><div class="brand-sub">Admin Panel</div></div>' +
+      '<div><div class="brand-name brand-calligraphy" style="font-size:19px">Winning Tour</div><div class="brand-sub">Admin Panel</div></div>' +
       '</div>';
     html += '<nav class="sidebar-nav">';
     html += '<button class="nav-item" onclick="App.navigate(\'search\')" style="margin-bottom:8px;background:rgba(25,118,210,.14);color:#e2e8f0;border:1px solid rgba(25,118,210,.35)"><i class="fa-solid fa-magnifying-glass"></i> Quick Search</button>';
@@ -540,7 +619,14 @@ tbody tr:hover{background:#fafbfc}
   }
 
   function navigate(page) {
-    if (!state.admin) return;
+    if (!state.admin) {
+      // Was silently doing nothing here before — if the session expired or
+      // failed to load, every sidebar click looked exactly like "the button
+      // doesn't work" with zero feedback. Now it's visible and recoverable.
+      toast('Your session has expired or failed to load. Please sign in again.', 'err');
+      showLogin();
+      return;
+    }
     var item = null;
     NAV.forEach(function (g) { g.items.forEach(function (i) { if (i.page === page) item = i; }); });
     if (!item || !canView(item)) {
@@ -1006,8 +1092,8 @@ tbody tr:hover{background:#fafbfc}
         '<div class="form-grid">' +
           '<div class="field"><label>Name *</label><input class="input" id="cat-name" value="' + esc(cat.name || '') + '"></div>' +
           '<div class="field"><label>Code</label><input class="input" id="cat-code" value="' + esc(cat.code || '') + '" placeholder="game_code"></div>' +
-          '<div class="field full"><label>Image URL</label><input class="input" id="cat-img" value="' + esc(cat.img || cat.bannerUrl || '') + '"></div>' +
-          '<div class="field"><label>Icon URL</label><input class="input" id="cat-icon" value="' + esc(cat.icon || cat.iconUrl || '') + '"></div>' +
+          imgField('cat-img', 'Image', cat.img || cat.bannerUrl, { full: true }) +
+          imgField('cat-icon', 'Icon', cat.icon || cat.iconUrl, {}) +
           '<div class="field"><label>Display order</label><input class="input" id="cat-order" type="number" value="' + num(cat.displayOrder) + '"></div>' +
           '<div class="field"><label>Status</label><select class="input" id="cat-status"><option value="active" ' + (cat.status !== 'inactive' ? 'selected' : '') + '>Active</option><option value="inactive" ' + (cat.status === 'inactive' ? 'selected' : '') + '>Inactive</option></select></div>' +
           '<div class="field full switch-row" style="border:none;padding:4px 0"><div><div class="k">Show on home screen</div><div class="d">Display this category on the user home</div></div><label class="switch"><input type="checkbox" id="cat-home" ' + (cat.showOnHome === false ? '' : 'checked') + '><span class="track"></span></label></div>' +
@@ -1183,7 +1269,7 @@ tbody tr:hover{background:#fafbfc}
           '<div class="field"><label>Duration (min)</label><input class="input" id="mm-dur" type="number" value="' + num(m.duration) + '"></div>' +
           '<div class="field"><label>Room ID</label><input class="input" id="mm-room" value="' + esc(m.room_id || '') + '"></div>' +
           '<div class="field"><label>Room pass</label><input class="input" id="mm-pass" value="' + esc(m.room_pass || '') + '"></div>' +
-          '<div class="field full"><label>Icon URL</label><input class="input" id="mm-icon" value="' + esc(m.icon || m.iconUrl || '') + '"></div>' +
+          imgField('mm-icon', 'Icon', m.icon || m.iconUrl, { full: true }) +
           '<div class="field full"><label>Status</label><select class="input" id="mm-status"><option value="Draft" ' + (m.status === 'Draft' ? 'selected' : '') + '>Draft</option><option value="Upcoming" ' + (m.status === 'Upcoming' ? 'selected' : '') + '>Upcoming</option><option value="Ongoing" ' + (m.status === 'Ongoing' ? 'selected' : '') + '>Ongoing</option><option value="Cancelled" ' + (m.status === 'Cancelled' ? 'selected' : '') + '>Cancelled</option></select></div>' +
           '<div class="field full switch-row" style="border:none;padding:4px 0"><div><div class="k">Featured</div></div><label class="switch"><input type="checkbox" id="mm-feat" ' + (m.featured ? 'checked' : '') + '><span class="track"></span></label></div>' +
           '<div class="field full switch-row" style="border:none;padding:4px 0"><div><div class="k">Published</div></div><label class="switch"><input type="checkbox" id="mm-pub" ' + (m.published !== false ? 'checked' : '') + '><span class="track"></span></label></div>' +
@@ -1253,7 +1339,7 @@ tbody tr:hover{background:#fafbfc}
       '<div class="modal-head"><h3>Finalize match</h3><button class="icon-btn" onclick="App.closeModal()"><i class="fa-solid fa-xmark"></i></button></div>' +
       '<div class="modal-body modal-lg">' +
         '<div class="notice" style="margin-bottom:14px"><i class="fa-solid fa-circle-info" style="margin-top:2px"></i><div>Prizes are validated against the prize pool and credited to winners via the ledger. Prizes can exceed the entry fee but must stay within the pool.</div></div>' +
-        '<div class="toolbar"><input class="input" style="flex:1" id="fin-name" placeholder="Participant name (click a slot to fill)"><button class="btn btn-ghost btn-sm" onclick="App.addPlacement($(document.getElementById(\'fin-name\').value))">Add placement</button></div>' +
+        '<div class="toolbar"><input class="input" style="flex:1" id="fin-name" placeholder="Participant name (click a slot to fill)"><button class="btn btn-ghost btn-sm" onclick="App.addPlacement(document.getElementById(\'fin-name\').value)">Add placement</button></div>' +
         '<div id="fin-slots" style="margin-bottom:4px"><span class="text-muted" style="font-size:12px">Loading participants\u2026</span></div>' +
         '<div id="fin-list"></div>' +
         '<div class="kv" style="margin-top:8px"><span class="k">Allocated</span><span class="v mono" id="fin-allocated">৳0</span></div>' +
@@ -2056,7 +2142,7 @@ tbody tr:hover{background:#fafbfc}
     openModal(
       '<div class="modal-head"><h3>' + (idx === null ? 'New banner' : 'Edit banner') + '</h3><button class="icon-btn" onclick="App.closeModal()"><i class="fa-solid fa-xmark"></i></button></div>' +
       '<div class="modal-body">' +
-        '<div class="field"><label>Image URL *</label><input class="input" id="bn-img" value="' + esc(banner.img || '') + '" placeholder="https://\u2026"></div>' +
+        imgField('bn-img', 'Image', banner.img, { required: true }) +
         '<div class="field"><label>Link (optional)</label><input class="input" id="bn-link" value="' + esc(banner.link || '') + '"></div>' +
         '<div class="field"><label>Title (optional)</label><input class="input" id="bn-title" value="' + esc(banner.title || '') + '"></div>' +
         '<div class="form-grid">' +
@@ -2655,11 +2741,13 @@ tbody tr:hover{background:#fafbfc}
       (canSave ? '' : '<div class="notice warn" style="margin-bottom:16px"><i class="fa-solid fa-triangle-exclamation" style="margin-top:2px"></i><div>Read-only view. Only Owners/Super Admins can manage media.</div></div>') +
       '<div class="card-title"><h3><i class="fa-solid fa-image"></i> Media Gallery</h3></div>' +
       '<div style="margin-bottom:20px">' +
-        '<div class="field"><label>Add image from URL</label>' +
+        '<div class="field"><label>Add image (paste a URL, or upload from gallery)</label>' +
         '<div style="display:flex;gap:8px;margin-bottom:10px">' +
-          '<input class="input" id="media-url-input" placeholder="https://example.com/image.jpg" style="flex:1">' +
+          '<input class="input" id="media-url-input" placeholder="https://example.com/image.jpg" style="flex:1" oninput="App.previewImg(\'media-url-input\')">' +
+          '<button type="button" class="btn btn-ghost" ' + (canSave ? '' : 'disabled') + ' title="Upload from gallery" onclick="App.pickImage(\'media-url-input\')"><i class="fa-solid fa-images"></i></button>' +
           '<input class="input" id="media-label-input" placeholder="Label (e.g., Logo, Banner 1)" style="flex:0.4">' +
         '</div>' +
+        '<img id="media-url-input-prev" style="display:none;max-height:70px;border-radius:8px;margin-bottom:10px;object-fit:cover" onerror="this.style.display=\'none\'">' +
         '<button class="btn btn-primary" ' + (canSave ? '' : 'disabled') + ' onclick="App.addMediaUrl()"><i class="fa-solid fa-plus"></i> Add image</button>' +
         '</div>' +
         '<div id="media-msg" class="form-msg" style="margin-bottom:10px"></div>' +
@@ -2708,8 +2796,8 @@ tbody tr:hover{background:#fafbfc}
     var label = (document.getElementById('media-label-input') || {}).value || 'Image';
     var msg = document.getElementById('media-msg');
     
-    if (!url || !url.startsWith('http')) { 
-      if (msg) { msg.textContent = 'Please enter a valid image URL'; msg.className = 'form-msg err'; }
+    if (!url || !(url.indexOf('http') === 0 || url.indexOf('data:image/') === 0)) { 
+      if (msg) { msg.textContent = 'Please enter a valid image URL, or use Upload.'; msg.className = 'form-msg err'; }
       return; 
     }
     
@@ -2876,17 +2964,24 @@ tbody tr:hover{background:#fafbfc}
     loadMaintenance: loadMaintenance, saveMaintenance: saveMaintenance,
     loadSettings: loadSettings, saveAppSettings: saveAppSettings, loadPaymentSettings: loadPaymentSettings, savePaymentSettings: savePaymentSettings,
     loadMediaGallery: loadMediaGallery, addMediaUrl: addMediaUrl, deleteMediaItem: deleteMediaItem, switchSettingsTab: switchSettingsTab,
+    pickImage: pickImage, previewImg: previewImg,
     loadSecurity: loadSecurity, logoutAllSessions: logoutAllSessions, changePassword: changePassword, doChangePassword: doChangePassword,
     verifyPasswordSelf: verifyPasswordSelf, generateMyRecoveryCode: generateMyRecoveryCode
   };
   window.App = App;
 
-  // Error logging to help debug issues
+  // Error logging to help debug issues. This ALSO surfaces the error as a
+  // visible toast — on a phone there's no devtools console to check, so a
+  // button that silently fails (a JS error inside its onclick handler) used
+  // to look exactly like "nothing happens". Now the actual error text shows
+  // up on screen so it can be reported and fixed.
   window.addEventListener('error', function(e) {
     console.error('[Admin Panel Error]', e.message, e.filename + ':' + e.lineno);
+    try { toast('Error: ' + e.message, 'err'); } catch (e2) {}
   });
   window.addEventListener('unhandledrejection', function(e) {
     console.error('[Unhandled Promise Rejection]', e.reason);
+    try { toast('Error: ' + ((e.reason && e.reason.message) || e.reason), 'err'); } catch (e2) {}
   });
 
   window.addEventListener('hashchange', function () { if (state.admin) navigate(location.hash.replace('#/', '') || 'dashboard'); });
